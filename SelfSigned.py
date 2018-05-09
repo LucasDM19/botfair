@@ -4,8 +4,8 @@ from pprint import pprint
 from time import gmtime, mktime
 from os.path import exists, join
 
-CERT_FILE = "myapp.crt"
-KEY_FILE = "myapp.key"
+CERT_FILE = "client-2048.crt"
+KEY_FILE = "client-2048.key"
 
 def create_self_signed_cert(cert_dir):
     """
@@ -22,12 +22,12 @@ def create_self_signed_cert(cert_dir):
 
         # create a self-signed cert
         cert = crypto.X509()
-        cert.get_subject().C = "US"
-        cert.get_subject().ST = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        cert.get_subject().L = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-        cert.get_subject().O = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
-        cert.get_subject().OU = "my organization"
-        cert.get_subject().CN = "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+        cert.get_subject().C = "GB"
+        cert.get_subject().ST = "London"
+        cert.get_subject().L = "London"
+        cert.get_subject().O = "aposte.me"
+        cert.get_subject().OU = "Seu Cuca, Inc"
+        cert.get_subject().CN = "BotFair Teste"
         cert.set_serial_number(1000)
         cert.gmtime_adj_notBefore(0)
         cert.gmtime_adj_notAfter(10*365*24*60*60)
