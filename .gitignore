@@ -141,3 +141,7 @@ $RECYCLE.BIN/
 # Certificates
 *.crt
 *.key
+
+#BotFair Files
+*.bot
+*.txt

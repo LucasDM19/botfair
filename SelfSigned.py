@@ -41,5 +41,6 @@ def create_self_signed_cert(cert_dir):
         #open(join(cert_dir, KEY_FILE), "wt").write(
         open(join(cert_dir, KEY_FILE), "wb").write(
             crypto.dump_privatekey(crypto.FILETYPE_PEM, k))
-        
-create_self_signed_cert(".")
+   
+if __name__ == "__main__":   
+   create_self_signed_cert(".")
