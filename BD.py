@@ -1,3 +1,5 @@
+from Hush import usuarioBD, senhaBD, hostBD, databaseName, statsURL
+
 """
 Classe que se conecta com um banco de dados.
 """

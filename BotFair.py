@@ -1,7 +1,5 @@
 from __future__ import print_function
-import json
-import requests #pip install requests
-from Hush import usuarioAPI, senhaAPI, APIKey, usuarioBD, senhaBD, hostBD, databaseName, statsURL
+from Hush import usuarioAPI, senhaAPI, APIKey, statsURL
 from BD import BancodeDados
 from Stats import SoccerStats
 from RestAPI import BetfairAPI
@@ -151,7 +149,6 @@ class BotFair():
           
 if __name__ == "__main__":                    
    #input("Continuando...")
-   cf = ConfigFile()
    u, s, a = usuarioAPI, senhaAPI, APIKey
    api = BetfairAPI(usuario=u, senha=s, api_key=a)
    print("Session Token=",api.sessionToken)

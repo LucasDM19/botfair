@@ -1,3 +1,6 @@
+import requests #pip install requests
+import json
+
 """
 Classe apenas para a utilizacao da API da Betfair.
 """
