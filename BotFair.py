@@ -18,6 +18,8 @@ class BotFair():
       if(bdOption): #Se devo conectar no banco
          self.bd = BancodeDados()
       self.soccerID = self.obtemIdDoFutebol(eventTypeName="Soccer", lazyMode=True) #Sempre eh 1
+      stats = SoccerStats(url=statsURL) #Classe para obter o Json
+      self.estatisticas = stats #salva para uso posterior
          
    """
    Obtem o ID de um esporte, com base no nome.
@@ -155,16 +157,23 @@ class BotFair():
       filtro=('{"filter":{'
          ' "inPlayOnly" : true, '
          ' "sort":"FIRST_TO_START","maxResults":"100"]}')
-         #'"marketProjection":["RUNNER_METADATA"]}')
       self.jPartidas = api.obtemPartidasDeFutebol(json_req=filtro) #Obtendo o Json das partidas
       print( self.jPartidas )
       for idx in range(len(self.jPartidas)):
          print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
+
+   def BotFairGo(self):
+      print("Oe")
+      jstat = self.estatisticas.getStats() #Atualizo o Json
+      idPartidaJson = [ jstat[x]["home"]+"x"+jstat[x]["away"] for x in range(len(jstat)) ] #Partidas no formato MandanteXVisitante do Json
+      print(idPartidaJson)
       
+         
 if __name__ == "__main__":
    parser = ArgumentParser()
-   parser.add_argument("-p", "--partidas", action="store_false", dest="partidas", help="Coleta apenas as proximas partidas")
-   parser.add_argument("-o", "--odds", action="store_false", dest="odds", help="Coleta apenas as odds de jogos correntes")
+   parser.add_argument("-p", "--partidas", action="store_true", dest="partidas", help="Coleta apenas as proximas partidas")
+   parser.add_argument("-o", "--odds", action="store_true", dest="odds", help="Coleta apenas as odds de jogos correntes")
+   parser.add_argument("-b", "--bot", action="store_true", dest="bot", help="Aposta usando o Json como base")
    parser.add_argument("-d", "--horas", dest="horas", help="Horas de antecedencia da partida para coletar odds", default=0)
    parser.add_argument("-m", "--minutos", dest="minutos", help="Minutos de antecedencia da partida para coletar odds", default=30)
    parser.add_argument("-f", "--frequencia", dest="freq", help="Frequencia, em segundos, para coletar as odds", default=30)
@@ -175,10 +184,16 @@ if __name__ == "__main__":
    u, s, a = usuarioAPI, senhaAPI, APIKey
    api = BetfairAPI(usuario=u, senha=s, api_key=a)
    print("Session Token=",api.sessionToken)
-   bot = BotFair(api, bdOption=True)
+   bot = BotFair(api, bdOption=False)
    #bot.roda()
+   if args.bot:
+      bot.BotFairGo()
    if args.odds:
       bot.atualizaOdds()
    if args.partidas:
-      bot.ExibeTodosDados(horas=0, minutos=30)
+      while True:
+         try:
+            bot.ExibeTodosDados(horas=int(args.horas), minutos=int(args.minutos))
+         except Exception:
+            print("Erro!")
    

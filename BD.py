@@ -15,7 +15,7 @@ class BancodeDados():
       #import mysql.connector7
       import mysql.connector
       self.conn = mysql.connector.connect(**config)
-
+      
    #Abstrai para incluir qualquer item em qualquer tabela. 
    #Passa campos=(campo1, campo2, campo3, ...), nome da tabela e campoId=id (geralmente)
    def salvaTabela(self, campos=None, nomeTabela=None, campoId=None, valores=None):
