@@ -45,8 +45,8 @@ class BotFair():
          '"marketProjection":["RUNNER_METADATA"]}')
       self.jPartidas = api.obtemPartidasDeFutebol(json_req=filtro) #Obtendo o Json das partidas
       #print( self.jPartidas )
-      for idx in range(len(self.jPartidas)):
-         print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
+      #for idx in range(len(self.jPartidas)):
+      #   print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
       
    def ObtemMercadosDisponiveis(self):
       pass
@@ -147,7 +147,7 @@ class BotFair():
    Metodo principal do Bot. A logica principal. O camisa nove. O macaco da bola azul.
    """
    def roda(self):
-      self.obtemListaDePartidas(horas=0, minutos=30) #Partidas que comecam nos proximos 30 minutos
+      x = self.obtemListaDePartidas(horas=0, minutos=30) #Partidas que comecam nos proximos 30 minutos
       #self.ExibeTodosDados(horas=1, minutos=30) #Refatorar isso depois
       
    """
@@ -165,8 +165,24 @@ class BotFair():
    def BotFairGo(self):
       print("Oe")
       jstat = self.estatisticas.getStats() #Atualizo o Json
-      idPartidaJson = [ jstat[x]["home"]+"x"+jstat[x]["away"] for x in range(len(jstat)) ] #Partidas no formato MandanteXVisitante do Json
-      print(idPartidaJson)
+      partidasJson = [ jstat[x]["home"]+" v "+jstat[x]["away"] for x in range(len(jstat)) ] #Partidas no formato MandanteXVisitante do Json
+      print(partidasJson)
+      print("Mae")
+      self.obtemListaDePartidas(horas=3, minutos=30)
+      partidasBF = [self.jPartidas[idx]["event"]["name"] for idx in range(len(self.jPartidas))]
+      print(partidasBF)
+      for p1 in partidasJson:
+         min = 9 #Filtro
+         min_n = ""
+         for p2 in partidasBF:
+            if( self.estatisticas.LD(p1, p2) <= min ):
+               #print("PB=", p2, " encontrado!")
+               min = self.estatisticas.LD(p1, p2)
+               min_n = p2
+            #if( self.estatisticas.LD(p1, p2) <= 11 ):
+         if( min_n != "" ):
+            print("PJ=", p1, "PB=", min_n, "LD=", min )
+      
       
          
 if __name__ == "__main__":
@@ -196,4 +212,5 @@ if __name__ == "__main__":
             bot.ExibeTodosDados(horas=int(args.horas), minutos=int(args.minutos))
          except Exception:
             print("Erro!")
+            raise
    
