@@ -1,5 +1,5 @@
 from __future__ import print_function
-from Hush import usuarioAPI, senhaAPI, APIKey, statsURL
+from Hush import usuarioAPI, senhaAPI, APIKey, statsURL, habilitarBD
 from BD import BancodeDados
 from Stats import SoccerStats
 from RestAPI import BetfairAPI
@@ -161,28 +161,44 @@ class BotFair():
       print( self.jPartidas )
       for idx in range(len(self.jPartidas)):
          print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
-
+   
+   #
+   def getOddsFromPartida(self, idBF=None):
+      mercados = ["OVER_UNDER_" + str(idg) + "5" for idg in range(0,8)] #Todos os Unver/Over
+      filtro='{"filter": {"eventIds": [ "' + idBF +'" ], "marketTypeCodes":['+ ", ".join(mercados) +'] }, "maxResults": "200", "marketProjection": [ "RUNNER_DESCRIPTION" ] }'
+      print(filtro)
+      mercadosBF = api.obtemTodosMercadosDasPartidas(json_req=filtro)
+      #mercadosBF = api.obtemTodosTiposDeMercados() #Todos os tipos de mercados
+      print(mercadosBF )
+      x = 1/0
+      
+   #Provavel metodo para apostar com base no Json
    def BotFairGo(self):
-      print("Oe")
+      #print("Oe")
       jstat = self.estatisticas.getStats() #Atualizo o Json
       partidasJson = [ jstat[x]["home"]+" v "+jstat[x]["away"] for x in range(len(jstat)) ] #Partidas no formato MandanteXVisitante do Json
-      print(partidasJson)
-      print("Mae")
+      #print(partidasJson)
+      #print("Mae")
       self.obtemListaDePartidas(horas=3, minutos=30)
       partidasBF = [self.jPartidas[idx]["event"]["name"] for idx in range(len(self.jPartidas))]
-      print(partidasBF)
-      for p1 in partidasJson:
+      #print(partidasBF)
+      self.dadosConsolidados = [] #Lista que une ambos as fontes
+      print(self.jPartidas[0])
+      for p1 in range(len(partidasJson)):
          min = 9 #Filtro
          min_n = ""
-         for p2 in partidasBF:
-            if( self.estatisticas.LD(p1, p2) <= min ):
+         for p2 in range(len(partidasBF)):
+            if( self.estatisticas.LD(partidasJson[p1], partidasBF[p2]) <= min ):
                #print("PB=", p2, " encontrado!")
-               min = self.estatisticas.LD(p1, p2)
-               min_n = p2
+               min = self.estatisticas.LD(partidasJson[p1], partidasBF[p2] )
+               min_n = partidasBF[p2]
             #if( self.estatisticas.LD(p1, p2) <= 11 ):
          if( min_n != "" ):
-            print("PJ=", p1, "PB=", min_n, "LD=", min )
-      
+            #print("PJ=", p1, "PB=", min_n, "LD=", min )
+            self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
+      for dc in self.dadosConsolidados:
+         self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] )
+         #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
       
          
 if __name__ == "__main__":
@@ -200,7 +216,7 @@ if __name__ == "__main__":
    u, s, a = usuarioAPI, senhaAPI, APIKey
    api = BetfairAPI(usuario=u, senha=s, api_key=a)
    print("Session Token=",api.sessionToken)
-   bot = BotFair(api, bdOption=False)
+   bot = BotFair(api, bdOption=habilitarBD )
    #bot.roda()
    if args.bot:
       bot.BotFairGo()

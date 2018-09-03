@@ -83,6 +83,12 @@ class BetfairAPI():
    """
    def obtemTodosMercadosDasPartidas(self, json_req='{"filter":{ }}'):
       return self.APIRest(metodo = "listMarketCatalogue/", json_req=json_req)
+      
+   """
+   Apenas coleta todos os codigos de mercados existentes
+   """
+   def obtemTodosTiposDeMercados(self, json_req='{"filter":{ }}'):
+      return self.APIRest(metodo = "listMarketTypes/", json_req=json_req)
 
    """
    Retorna todas as odds de um grupo de mercados.
