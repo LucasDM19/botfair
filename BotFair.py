@@ -162,6 +162,20 @@ class BotFair():
       for idx in range(len(self.jPartidas)):
          print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
    
+   #Armazena tudo em banco de dados
+   def salvaDadosBD(self, dc=None):
+      #Armazena tudo no BD
+      bdIdEquipe = self.bd.salvaTabelaTimes( nome= dc["BetFair"]["event"]["name"] )
+      bdIdBf = self.bd.salvaTabelaPartidas( idBF=dc["BetFair"]["event"]["id"], idEquipes=bdIdEquipe, openDate=dc["BetFair"]["event"]["openDate"] ) #bdIdBf == idx
+      print(dc["mercados"])
+      for uo in range(1,8):
+         bdIdMercado = self.bd.salvaTabelaMercados( nome=dc["mercados"]["Over/Under "+str(uo)+".5 Goals"] )
+         bdIdSelecao = self.bd.salvaTabelaSelecoes( idMercado=bdIdMercado, nome=dc["selecoes"]["Under "+str(uo)+".5 Goals"] )
+      import time    
+      timeStamp = time.strftime('%Y-%m-%d %H:%M:%S')
+      for uo in range(1,8):
+         bdRetorno = self.bd.salvaTabelaOdds( idPartida=bdIdBf, idSelecao=bdIdSelecao, timestamp=timeStamp, bestOdd=dc["odds"]["Under "+str(uo)+".5 Goals"] )
+      
    # Retorna todas as melhores Odds de todos os mercados Under/Over para a partida especificada. Faz apenas duas requisicoes!
    def getOddsFromPartida(self, idBF=None):
       mercados = ['"OVER_UNDER_' + str(idg) + '5"' for idg in range(0,8)] #Todos os Unver/Over, menos 8
@@ -171,14 +185,15 @@ class BotFair():
       
       selections = ['"' + str(mercadoBF["marketId"])+'"' for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"]))]
       mercados = { mercadoBF["runners"][idx]["selectionId"] : mercadoBF["runners"][idx]["runnerName"]  for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"])) } #Qual codigo de mercado eh de qual tipo
-      selections = { mercadoBF["runners"][idx]["runnerName"] : mercadoBF["runners"][idx]["selectionId"] for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"])) } #Inverso do anterior
+      mercadosM = { mercadoBF["marketName"] : mercadoBF["marketId"]  for mercadoBF in mercadosBF  } 
+      selectionsM = { mercadoBF["runners"][idx]["runnerName"] : mercadoBF["runners"][idx]["selectionId"] for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"])) } #Inverso do anterior
       
       filtro= '{ "marketIds": [' + ", ".join(selections) + '], "priceProjection": { "priceData": ["EX_BEST_OFFERS"], "virtualise": "true" } }'
       odds = api.obtemOddsDosMercados(json_req=filtro)
       
       melhoresOdds = { mercados[odds[idxRun]["runners"][idxSel]["selectionId"]]  :  odds[idxRun]["runners"][idxSel]["ex"]["availableToBack"][0]["price"]  for idxRun in range(len(odds))  for idxSel in range(len(odds[idxRun]["runners"])) if len(odds[idxRun]["runners"][idxSel]["ex"]["availableToBack"]) >= 1 }
       
-      return melhoresOdds, selections
+      return melhoresOdds, selectionsM, mercadosM
    
    #Avalia os dados, e define se faz aposta ou nao
    def avaliaSeApostaOuNao(self, dc=None):
@@ -191,8 +206,6 @@ class BotFair():
          maximo_da_banca_por_aposta = 15
          
          try:
-            #print( "Under=", odds["Under "+str(uo)+".5 Goals"], ", Over=", odds["Over "+str(uo)+".5 Goals"] )
-            #probUnder=1.0/j_sel.odds_Under/(1.0/j_sel.odds_Under + 1.0/j_sel.odds_Over)
             probUnder = 1.0/odds["Under "+str(uo)+".5 Goals"]/(1.0/odds["Under "+str(uo)+".5 Goals"] + 1.0/odds["Over "+str(uo)+".5 Goals"])
             #print(probUnder)
          except KeyError: #Falta algum mercado
@@ -216,9 +229,9 @@ class BotFair():
             percent_da_banca = pl_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
                percent_da_banca=maximo_da_banca_por_aposta
-            return True
+            return True, uo
          else:
-            return False
+            return False, -1
    
    #Provavel metodo para apostar com base no Json
    def BotFairGo(self):
@@ -246,16 +259,20 @@ class BotFair():
             self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
       for dc in self.dadosConsolidados:
          print(dc["nomeBF"])
-         odds, selecoes = self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] )
+         odds, selecoes, mercados = self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] )
          dc["odds"] = odds
          dc["selecoes"] = selecoes
+         dc["mercados"] = mercados
          #print(odds)
          
-         ret = avaliaSeApostaOuNao(dc)
+         ret, uo = self.avaliaSeApostaOuNao(dc)
          if( ret == True ):
             print("Apostarei", percent_da_banca, " na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odds["Under "+str(uo)+".5 Goals"], ", jogo=", dc["nomeBF"], " .")
-         x = 1/0
+            x = 1/0
+            filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
+            #ja = api.aposta(json_req=filtro) #Cuidado
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
+         self.salvaDadosBD(dc)
       
          
 if __name__ == "__main__":

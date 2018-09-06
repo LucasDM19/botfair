@@ -30,7 +30,7 @@ class BancodeDados():
       else:
          query = "SELECT " + ", ".join(campos) + " FROM " + nomeTabela + " WHERE " +camposBusca[0]+ " = %s "
       valores = [str(v) for v in valores] #Tentar arrumar string
-      print("q=",query,", v=", valores)
+      #print("q=",query,", v=", valores)
       cursor.execute(query, valores )
       idRetorno = -1
       for camposR in cursor: #Refatorar a partir daqui
@@ -51,7 +51,7 @@ class BancodeDados():
    
    #Com base no nome do confronto (Mandante v Visitante), verifica se ja tem. Se ja tiver, retorna ID. Se nao tiver, insere, e retorna ID
    def salvaTabelaTimes(self, nome):
-      print("Salvarei Times:", nome)
+      #print("Salvarei Times:", nome)
       idRetorno = self.salvaTabela(campos=("id", "nome"), nomeTabela="bf_times", campoId="id", valores=(nome,) )
       return idRetorno
       
@@ -60,25 +60,25 @@ class BancodeDados():
       from datetime import datetime
       dOpenDate = datetime.strptime(openDate ,'%Y-%m-%dT%H:%M:%S.000Z') #Converto a data
       sOpenDate = dOpenDate.strftime('%Y-%m-%d %H:%M:%S') #Formato mySQL
-      print("Salvarei Partidas:", idBF, idEquipes, sOpenDate)
+      #print("Salvarei Partidas:", idBF, idEquipes, sOpenDate)
       
       idRetorno = self.salvaTabela(campos=("id_bf", "id_time", "open_date"), nomeTabela="bf_partidas", campoId="", valores=(idBF, idEquipes, sOpenDate,) )
       return idRetorno #Deve ser igual a idBF
       
    #Recebe nome do mercado. Se ja existe, retorna ID. Se nao tiver, cadastra, e retorna ID
    def salvaTabelaMercados(self, nome):
-      print("Salvarei Mercados:", nome)
+      #print("Salvarei Mercados:", nome)
       idRetorno = self.salvaTabela(campos=("id", "nome"), nomeTabela="bf_mercados", campoId="id", valores=(nome,) )
       return idRetorno
       
    #Recebe id do mercado e nome da selecao. Se nao tiver, cadastra, e retorna ID. Se ja tiver, retorna ID.
    def salvaTabelaSelecoes(self, idMercado, nome):
-      print("Salvarei Selecoes:", idMercado, nome)
+      #print("Salvarei Selecoes:", idMercado, nome)
       idRetorno = self.salvaTabela(campos=("id", "id_mercado", "nome"), nomeTabela="bf_selecoes", campoId="id", valores=(idMercado, nome,) )
       return idRetorno
       
    #Recebe id da partida, id da selecao, timestamp e a melhor odd. Sempre adiciona
    def salvaTabelaOdds(self, idPartida, idSelecao, timestamp, bestOdd):
-      print("Salvarei Odds:", idPartida, idSelecao, timestamp, bestOdd)
+      #print("Salvarei Odds:", idPartida, idSelecao, timestamp, bestOdd)
       idRetorno = self.salvaTabela(campos=("id_partida", "id_selecao", "timestamp", "best_odd"), nomeTabela="bf_odds", campoId="", valores=(idPartida, idSelecao, timestamp, bestOdd,) )
       return idRetorno
