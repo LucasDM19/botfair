@@ -201,7 +201,8 @@ class BotFair():
    #Avalia os dados, e define se faz aposta ou nao
    def avaliaSeApostaOuNao(self, dc=None):
       odds = dc["odds"]
-      for uo in range(1,8): #Percorrer todos os Under/Over
+      merc_gols = [int(i.replace("Under ","").replace(".5 Goals","").replace("Over ","")) for i in odds.keys()]
+      for uo in merc_gols: #range(1,8): #Percorrer todos os Under/Over que estiverem disponiveis
          goalline = 0 #jogo_selecionado.AH_Away
          COMISSAO_BETFAIR = 0.05
          minimo_indice_para_apostar = 0.02 + COMISSAO_BETFAIR
@@ -214,7 +215,8 @@ class BotFair():
             #print(probU)
          except KeyError: #Falta algum mercado
             pass
-            #print("Sem mercado")
+            print("Sem mercado")
+            probU_diff=0
          s_g=dc["Json"]['gh']+dc["Json"]['ga']
          s_c=dc["Json"]['ch']+dc["Json"]['ca']
          s_s=dc["Json"]['sh']+dc["Json"]['sa']
@@ -279,7 +281,7 @@ class BotFair():
             #x = 1/0
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
-         else: print("Nada para apostar por enquanto...")
+         #else: print("Nada para apostar por enquanto...")
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
          #self.salvaDadosBD(dc) #Ver se reativa 
       
