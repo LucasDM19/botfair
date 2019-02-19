@@ -266,7 +266,7 @@ class BotFair():
             #print("PJ=", p1, "PB=", min_n, "LD=", min )
             self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
       for dc in self.dadosConsolidados:
-         print(dc["nomeBF"])
+         #print(dc["nomeBF"])
          odds, selecoes, mercados = self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] )
          dc["odds"] = odds
          dc["selecoes"] = selecoes
@@ -279,6 +279,7 @@ class BotFair():
             x = 1/0
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
+         else: print("Nada para apostar por enquanto...")
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
          #self.salvaDadosBD(dc) #Ver se reativa 
       
