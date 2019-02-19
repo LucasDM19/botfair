@@ -276,7 +276,7 @@ class BotFair():
          ret, uo = self.avaliaSeApostaOuNao(dc)
          if( ret == True ):
             print("Apostarei", percent_da_banca, " na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odds["Under "+str(uo)+".5 Goals"], ", jogo=", dc["nomeBF"], " .")
-            x = 1/0
+            #x = 1/0
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
          else: print("Nada para apostar por enquanto...")
