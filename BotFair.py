@@ -173,8 +173,11 @@ class BotFair():
          bdIdSelecao = self.bd.salvaTabelaSelecoes( idMercado=bdIdMercado, nome=dc["selecoes"]["Under "+str(uo)+".5 Goals"] )
       import time    
       timeStamp = time.strftime('%Y-%m-%d %H:%M:%S')
-      for uo in range(1,8):
-         bdRetorno = self.bd.salvaTabelaOdds( idPartida=bdIdBf, idSelecao=bdIdSelecao, timestamp=timeStamp, bestOdd=dc["odds"]["Under "+str(uo)+".5 Goals"] )
+      try:
+         for uo in range(1,8):
+            bdRetorno = self.bd.salvaTabelaOdds( idPartida=bdIdBf, idSelecao=bdIdSelecao, timestamp=timeStamp, bestOdd=dc["odds"]["Under "+str(uo)+".5 Goals"] )
+      except KeyError:
+         pass #Sim, ignoro por enquanto
       
    # Retorna todas as melhores Odds de todos os mercados Under/Over para a partida especificada. Faz apenas duas requisicoes!
    def getOddsFromPartida(self, idBF=None):
