@@ -32,7 +32,7 @@ class BetfairAPI():
       payload = 'username='+self.usuario+'&password='+self.senha
       headers = {'X-Application': self.api_key, 'Content-Type': 'application/x-www-form-urlencoded'}
        
-      resp = requests.post('https://identitysso.betfair.com/api/certlogin', data=payload, cert=(certFile, keyFile), headers=headers)
+      resp = requests.post('https://identitysso-cert.betfair.com/api/certlogin', data=payload, cert=(certFile, keyFile), headers=headers)
        
       if resp.status_code == 200:
         resp_json = resp.json()

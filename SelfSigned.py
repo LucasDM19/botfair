@@ -1,4 +1,4 @@
-from OpenSSL import crypto, SSL
+from OpenSSL import crypto, SSL   # pip install pyOpenSSL
 from socket import gethostname
 from pprint import pprint
 from time import gmtime, mktime
