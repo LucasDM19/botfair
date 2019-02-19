@@ -12,7 +12,7 @@ class SoccerStats():
       import json 
       try:
          with urlopen( self.url ) as url:
-            data = json.loads(url.read().decode())
+            data = json.loads(url.read().decode('utf-8').replace("localStorage.stats=JSON.stringify(","").replace("}]);","}]") )
             #print(data)
             return(data)
       except AttributeError:

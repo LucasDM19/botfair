@@ -204,31 +204,36 @@ class BotFair():
       for uo in range(1,8): #Percorrer todos os Under/Over
          goalline = 0 #jogo_selecionado.AH_Away
          COMISSAO_BETFAIR = 0.05
-         minimo_indice_para_apostar = 1.20 + COMISSAO_BETFAIR
+         minimo_indice_para_apostar = 0.02 + COMISSAO_BETFAIR
          percentual_de_kelly = 0.2
          maximo_da_banca_por_aposta = 15
          
          try:
-            probUnder = 1.0/odds["Under "+str(uo)+".5 Goals"]/(1.0/odds["Under "+str(uo)+".5 Goals"] + 1.0/odds["Over "+str(uo)+".5 Goals"])
-            #print(probUnder)
+            probU = 1.0/odds["Under "+str(uo)+".5 Goals"]/(1.0/odds["Under "+str(uo)+".5 Goals"] + 1.0/odds["Over "+str(uo)+".5 Goals"])
+            probU_diff=abs(probU-0.5)
+            #print(probU)
          except KeyError: #Falta algum mercado
             pass
             #print("Sem mercado")
-         s_g=dc["Json"]['gHf']+dc["Json"]['gAf']
-         s_c=dc["Json"]['cHf']+dc["Json"]['cAf']
-         s_da=dc["Json"]['daHf']+dc["Json"]['daAf']
-         s_s=dc["Json"]['soHf']+dc["Json"]['soAf']+dc["Json"]['sfHf']+dc["Json"]['sfAf']
-         d_g=abs(dc["Json"]['gHf']-dc["Json"]['gAf'])
-         d_c=abs(dc["Json"]['cHf']-dc["Json"]['cAf'])
-         d_da=abs(dc["Json"]['daHf']+dc["Json"]['daAf'])
+         s_g=dc["Json"]['gh']+dc["Json"]['ga']
+         s_c=dc["Json"]['ch']+dc["Json"]['ca']
+         s_s=dc["Json"]['sh']+dc["Json"]['sa']
+         s_da=dc["Json"]['dah']+dc["Json"]['daa'] 
+         s_r=dc["Json"]['rh']+dc["Json"]['ra']
+         d_g=abs(dc["Json"]['gh']-dc["Json"]['ga'])
+         d_c=abs(dc["Json"]['ch']-dc["Json"]['ca'])
+         d_s=abs(dc["Json"]['sh']-dc["Json"]['sa'])                                         
+         d_da=abs(dc["Json"]['dah']+dc["Json"]['daa'])
+         
          goal_diff=goalline-s_g
          mod0=int(goalline%1==0)
-         mod25=int(goalline%1==0.25)
-         mod50=int(goalline%1==0.50)
-         mod75=int(goalline%1==0.75)
+         #mod25=int(goalline%1==0.25)
+         #mod50=int(goalline%1==0.50)
+         #mod75=int(goalline%1==0.75)
          
-         pl_por_odds = 0.1389 + -0.0118 * s_g + -0.0037 * s_c + -0.0004 * s_da + -0.007  * s_s + -0.0324 * d_g + -0.0032 * d_c + -0.001  * d_da + 0.103  * goal_diff + 0.0311 * mod0 + 0.0359 * mod25 + 0.0231 * mod50 + -0.3799 * probUnder; 
-         if( pl_por_odds >= minimo_indice_para_apostar): 
+         #pl_por_odds = 0.1389 + -0.0118 * s_g + -0.0037 * s_c + -0.0004 * s_da + -0.007  * s_s + -0.0324 * d_g + -0.0032 * d_c + -0.001  * d_da + 0.103  * goal_diff + 0.0311 * mod0 + 0.0359 * mod25 + 0.0231 * mod50 + -0.3799 * probUnder; 
+         pl_u= 0.0091 +     -0.0761 * s_g +     -0.0026 * s_c +     -0.0002 * s_da +     -0.0068 * s_s +     -0.0218 * s_r +     -0.0248 * d_g +     -0.0012 * d_da +     -0.0014 * d_s +      0.0746 * goalline +     -0.3222 * probU_diff +      0.0002 * mod0
+         if( pl_u >= minimo_indice_para_apostar): 
             percent_da_banca = pl_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
                percent_da_banca=maximo_da_banca_por_aposta
@@ -275,7 +280,7 @@ class BotFair():
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
-         self.salvaDadosBD(dc)
+         #self.salvaDadosBD(dc) #Ver se reativa 
       
          
 if __name__ == "__main__":
@@ -296,7 +301,10 @@ if __name__ == "__main__":
    bot = BotFair(api, bdOption=habilitarBD )
    #bot.roda()
    if args.bot:
-      bot.BotFairGo()
+      while True:
+         bot.BotFairGo()
+         import time
+         time.sleep( 15 )
    if args.odds:
       bot.atualizaOdds()
    if args.partidas:
