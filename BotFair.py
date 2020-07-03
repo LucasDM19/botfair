@@ -201,6 +201,7 @@ class BotFair():
    #Avalia os dados, e define se faz aposta ou nao
    def avaliaSeApostaOuNao(self, dc=None):
       odds = dc["odds"]
+      #print("Odds=", odds)
       merc_gols = [int(i.replace("Under ","").replace(".5 Goals","").replace("Over ","")) for i in odds.keys()]
       for uo in merc_gols: #range(1,8): #Percorrer todos os Under/Over que estiverem disponiveis
          goalline = 0 #jogo_selecionado.AH_Away
@@ -213,10 +214,10 @@ class BotFair():
             oddsU = odds["Under "+str(uo)+".5 Goals"]
             probU = 1.0/odds["Under "+str(uo)+".5 Goals"]/(1.0/odds["Under "+str(uo)+".5 Goals"] + 1.0/odds["Over "+str(uo)+".5 Goals"])
             probU_diff=abs(probU-0.5)
-            #print(probU)
+            #print(probU, oddsU, uo)
          except KeyError: #Falta algum mercado
             pass
-            print("Sem mercado")
+            #print("Sem mercado")
             probU_diff=0
          s_g=dc["Json"]['gH']+dc["Json"]['gA']
          s_c=dc["Json"]['cH']+dc["Json"]['cA']
@@ -248,6 +249,7 @@ class BotFair():
          #"plU_por_odds=(goal_diff<1.00||goal_diff>4.25||d_g>4 ?-1 :0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256);"
          if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 ): plU_por_odds = -1
          else: plU_por_odds = 0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256
+         #print("Per_banca=",plU_por_odds, uo )
          if( plU_por_odds >= minimo_indice_para_apostar): 
             percent_da_banca = plU_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
@@ -273,7 +275,7 @@ class BotFair():
          min_n = ""
          for p2 in range(len(partidasBF)):
             if( self.estatisticas.LD(partidasJson[p1], partidasBF[p2]) <= min ):
-               #print("PB=", p2, " encontrado!")
+               print("PB=", p2, " encontrado!", partidasJson[p1], partidasBF[p2])
                min = self.estatisticas.LD(partidasJson[p1], partidasBF[p2] )
                min_n = partidasBF[p2]
             #if( self.estatisticas.LD(p1, p2) <= 11 ):
@@ -294,7 +296,7 @@ class BotFair():
             #x = 1/0
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
-         else: print("Nada para apostar por enquanto...")
+         #else: print("Nada para apostar por enquanto...")
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
          #self.salvaDadosBD(dc) #Ver se reativa 
       
@@ -320,7 +322,7 @@ if __name__ == "__main__":
       while True:
          bot.BotFairGo()
          import time
-         time.sleep( 60 )
+         time.sleep( 60*5 )
    if args.odds:
       bot.atualizaOdds()
    if args.partidas:
