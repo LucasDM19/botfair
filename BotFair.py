@@ -210,6 +210,7 @@ class BotFair():
          maximo_da_banca_por_aposta = 15
          
          try:
+            oddsU = odds["Under "+str(uo)+".5 Goals"]
             probU = 1.0/odds["Under "+str(uo)+".5 Goals"]/(1.0/odds["Under "+str(uo)+".5 Goals"] + 1.0/odds["Over "+str(uo)+".5 Goals"])
             probU_diff=abs(probU-0.5)
             #print(probU)
@@ -217,26 +218,38 @@ class BotFair():
             pass
             print("Sem mercado")
             probU_diff=0
-         s_g=dc["Json"]['gh']+dc["Json"]['ga']
-         s_c=dc["Json"]['ch']+dc["Json"]['ca']
-         s_s=dc["Json"]['sh']+dc["Json"]['sa']
-         s_da=dc["Json"]['dah']+dc["Json"]['daa'] 
-         s_r=dc["Json"]['rh']+dc["Json"]['ra']
-         d_g=abs(dc["Json"]['gh']-dc["Json"]['ga'])
-         d_c=abs(dc["Json"]['ch']-dc["Json"]['ca'])
-         d_s=abs(dc["Json"]['sh']-dc["Json"]['sa'])                                         
-         d_da=abs(dc["Json"]['dah']+dc["Json"]['daa'])
+         s_g=dc["Json"]['gH']+dc["Json"]['gA']
+         s_c=dc["Json"]['cH']+dc["Json"]['cA']
+         s_s=dc["Json"]['sH']+dc["Json"]['sA']
+         s_da=dc["Json"]['daH']+dc["Json"]['daA'] 
+         #s_r=dc["Json"]['rh']+dc["Json"]['ra']
+         s_r = dc["Json"]['sr']
+         d_g=abs(dc["Json"]['gH']-dc["Json"]['gA'])
+         d_c=abs(dc["Json"]['cH']-dc["Json"]['cA'])
+         d_s=abs(dc["Json"]['sH']-dc["Json"]['sA'])                                         
+         d_da=abs(dc["Json"]['daH']+dc["Json"]['daA'])
          
          goal_diff=goalline-s_g
          mod0=int(goalline%1==0)
          #mod25=int(goalline%1==0.25)
          #mod50=int(goalline%1==0.50)
          #mod75=int(goalline%1==0.75)
+         import math 
+         X=s_g/math.log(s_s+0.75)
+         #Y=Math.pow(s_s,1.5)
+         L1=math.log(1+s_s)
+         L2=math.log(1+L1)
+         L3=math.log(1+L2)
+         #if( "Women" in dc["nomeBF"] 
+         W = 0 #W=Number(home.includes('Women')) // Adaptar isso
          
          #pl_por_odds = 0.1389 + -0.0118 * s_g + -0.0037 * s_c + -0.0004 * s_da + -0.007  * s_s + -0.0324 * d_g + -0.0032 * d_c + -0.001  * d_da + 0.103  * goal_diff + 0.0311 * mod0 + 0.0359 * mod25 + 0.0231 * mod50 + -0.3799 * probUnder; 
-         pl_u= 0.0091 +     -0.0761 * s_g +     -0.0026 * s_c +     -0.0002 * s_da +     -0.0068 * s_s +     -0.0218 * s_r +     -0.0248 * d_g +     -0.0012 * d_da +     -0.0014 * d_s +      0.0746 * goalline +     -0.3222 * probU_diff +      0.0002 * mod0
-         if( pl_u >= minimo_indice_para_apostar): 
-            percent_da_banca = pl_por_odds * percentual_de_kelly
+         #pl_u= 0.0091 +     -0.0761 * s_g +     -0.0026 * s_c +     -0.0002 * s_da +     -0.0068 * s_s +     -0.0218 * s_r +     -0.0248 * d_g +     -0.0012 * d_da +     -0.0014 * d_s +      0.0746 * goalline +     -0.3222 * probU_diff +      0.0002 * mod0
+         #"plU_por_odds=(goal_diff<1.00||goal_diff>4.25||d_g>4 ?-1 :0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256);"
+         if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 ): plU_por_odds = -1
+         else: plU_por_odds = 0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256
+         if( plU_por_odds >= minimo_indice_para_apostar): 
+            percent_da_banca = plU_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
                percent_da_banca=maximo_da_banca_por_aposta
             return True, uo
@@ -281,7 +294,7 @@ class BotFair():
             #x = 1/0
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
-         #else: print("Nada para apostar por enquanto...")
+         else: print("Nada para apostar por enquanto...")
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
          #self.salvaDadosBD(dc) #Ver se reativa 
       
@@ -307,7 +320,7 @@ if __name__ == "__main__":
       while True:
          bot.BotFairGo()
          import time
-         time.sleep( 15 )
+         time.sleep( 60 )
    if args.odds:
       bot.atualizaOdds()
    if args.partidas:
