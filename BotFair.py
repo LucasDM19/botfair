@@ -42,12 +42,31 @@ class BotFair():
          ' "turnsInPlay" : true, '
          ' "marketStartTime":{"from":"' + now + '", "to":"' + future + '"}},'
          ' "sort":"FIRST_TO_START","maxResults":"1",'
-         '"marketProjection":["RUNNER_DESCRIPTION","EVENT","MARKET_START_TIME"]}')
+         '"marketProjection":["RUNNER_METADATA"]}')
       self.jPartidas = api.obtemPartidasDeFutebol(json_req=filtro) #Obtendo o Json das partidas
       #print( self.jPartidas )
       #for idx in range(len(self.jPartidas)):
       #   print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
-      
+   
+   """
+   Obtem a lista de partidas que comecarao nos proximos trinta minutos.
+   Baseado na que obtem os dados Win de Londres.
+   """   
+   def obtemListaPartidasAndamento(self, horas=0, minutos=45):
+      import datetime
+      #now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+      now_fuso = datetime.datetime.now() + datetime.timedelta(hours=3, minutes=0) # Horário de Londres
+      faz_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-1*minutos-1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+      daqui_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-1*minutos+1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+      print("Inicio e fim:", faz_45_minutos, daqui_45_minutos)
+      filtro=('{"filter":{"eventTypeIds":["1"],  '
+         ' "turnsInPlay" : true, "inPlayOnly" : true, '
+         ' "marketStartTime":{"from":"' + faz_45_minutos + '", "to":"' + daqui_45_minutos + '"}},'
+         ' "sort":"FIRST_TO_START","maxResults":"100",'
+         '"marketProjection":["RUNNER_DESCRIPTION","EVENT","MARKET_START_TIME"]}')
+      self.jPartidas = api.obtemTodosMercadosDasPartidas(json_req=filtro) #Obtendo o Json das partidas
+      #print("Teste", self.jPartidas) #[p for p in self.jPartidas ][1] )
+
    def ObtemMercadosDisponiveis(self):
       pass
    
@@ -276,7 +295,7 @@ class BotFair():
       partidasJson = [ jstat[x]["home"]+" v "+jstat[x]["away"] for x in range(len(jstat)) ] #Partidas no formato MandanteXVisitante do Json
       #print(partidasJson)
       #print("Mae")
-      self.obtemListaDePartidas(horas=3, minutos=30)
+      self.obtemListaPartidasAndamento(horas=0, minutos=45) # Apenas final do primeiro tempo
       partidasBF = [self.jPartidas[idx]["event"]["name"] for idx in range(len(self.jPartidas))]
       #print(partidasBF)
       self.dadosConsolidados = [] #Lista que une ambos as fontes
