@@ -204,7 +204,8 @@ class BotFair():
       #print("Odds=", odds)
       merc_gols = [int(i.replace("Under ","").replace(".5 Goals","").replace("Over ","")) for i in odds.keys()]
       for uo in merc_gols: #range(1,8): #Percorrer todos os Under/Over que estiverem disponiveis
-         goalline = 0 #jogo_selecionado.AH_Away
+         #goalline = 0 #jogo_selecionado.AH_Away
+         goalline = uo + 0.5 # Parece que goalline eh o total de gols da aposta
          COMISSAO_BETFAIR = 0.05
          minimo_indice_para_apostar = 0.02 + COMISSAO_BETFAIR
          percentual_de_kelly = 0.2
@@ -231,6 +232,7 @@ class BotFair():
          d_da=abs(dc["Json"]['daH']+dc["Json"]['daA'])
          
          goal_diff=goalline-s_g
+         #print("Teste Diff=", goal_diff)
          mod0=int(goalline%1==0)
          #mod25=int(goalline%1==0.25)
          #mod50=int(goalline%1==0.50)
@@ -254,9 +256,9 @@ class BotFair():
             percent_da_banca = plU_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
                percent_da_banca=maximo_da_banca_por_aposta
-            return True, uo
+            return True, uo, percent_da_banca
          else:
-            return False, -1
+            return False, -1, 0
    
    #Provavel metodo para apostar com base no Json
    def BotFairGo(self):
@@ -290,11 +292,11 @@ class BotFair():
          dc["mercados"] = mercados
          #print(odds)
          
-         ret, uo = self.avaliaSeApostaOuNao(dc)
+         ret, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
          if( ret == True ):
             print("Apostarei", percent_da_banca, " na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odds["Under "+str(uo)+".5 Goals"], ", jogo=", dc["nomeBF"], " .")
             #x = 1/0
-            filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
+            #filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
          #else: print("Nada para apostar por enquanto...")
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
@@ -322,7 +324,7 @@ if __name__ == "__main__":
       while True:
          bot.BotFairGo()
          import time
-         time.sleep( 60*5 )
+         time.sleep( 60*1 )
    if args.odds:
       bot.atualizaOdds()
    if args.partidas:
