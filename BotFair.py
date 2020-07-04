@@ -203,6 +203,7 @@ class BotFair():
       odds = dc["odds"]
       #print("Odds=", odds)
       merc_gols = [int(i.replace("Under ","").replace(".5 Goals","").replace("Over ","")) for i in odds.keys()]
+      dic_op_aposta = {} # Todas as opções válidas de apostar
       for uo in merc_gols: #range(1,8): #Percorrer todos os Under/Over que estiverem disponiveis
          #goalline = 0 #jogo_selecionado.AH_Away
          goalline = uo + 0.5 # Parece que goalline eh o total de gols da aposta
@@ -220,6 +221,7 @@ class BotFair():
             pass
             #print("Sem mercado")
             probU_diff=0
+            oddsU = 0
          s_g=dc["Json"]['gH']+dc["Json"]['gA']
          s_c=dc["Json"]['cH']+dc["Json"]['cA']
          s_s=dc["Json"]['sH']+dc["Json"]['sA']
@@ -256,9 +258,15 @@ class BotFair():
             percent_da_banca = plU_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
                percent_da_banca=maximo_da_banca_por_aposta
-            return True, uo, percent_da_banca
-         else:
-            return False, -1, 0
+            #return True, uo, percent_da_banca
+            dic_op_aposta[uo] = percent_da_banca
+         #else:
+            #return False, -1, 0
+      
+      if( len(dic_op_aposta) == 0 ):
+         print("Sem nada para apostar", dc["nomeBF"] )
+         return False, -1, 0 # Sem nada para fazer
+      return True, max(dic_op_aposta, key=dic_op_aposta.get), dic_op_aposta[max(dic_op_aposta, key=dic_op_aposta.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
    #Provavel metodo para apostar com base no Json
    def BotFairGo(self):
