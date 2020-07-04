@@ -42,7 +42,7 @@ class BotFair():
          ' "turnsInPlay" : true, '
          ' "marketStartTime":{"from":"' + now + '", "to":"' + future + '"}},'
          ' "sort":"FIRST_TO_START","maxResults":"1",'
-         '"marketProjection":["RUNNER_METADATA"]}')
+         '"marketProjection":["RUNNER_DESCRIPTION","EVENT","MARKET_START_TIME"]}')
       self.jPartidas = api.obtemPartidasDeFutebol(json_req=filtro) #Obtendo o Json das partidas
       #print( self.jPartidas )
       #for idx in range(len(self.jPartidas)):
@@ -306,6 +306,7 @@ class BotFair():
             print("Apostarei", percent_da_banca, " na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odds["Under "+str(uo)+".5 Goals"], ", jogo=", dc["nomeBF"], " .")
             #x = 1/0
             #print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
+            print( [p for p in self.jPartidas ][0] )
             marketId = [p['marketId'] for p in self.jPartidas  if p["event"]["name"] == dc["nomeBF"]][0] # Acho que funciona
             #filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(selecoes["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "LAY", "orderType": "LIMIT", "limitOrder": { "size": "2", "price": "3", "persistenceType": "LAPSE" } } ] }'
             #ja = api.aposta(json_req=filtro) #Cuidado
