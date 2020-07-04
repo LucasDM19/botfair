@@ -263,10 +263,11 @@ class BotFair():
          #else:
             #return False, -1, 0
       
-      if( len(dic_op_aposta) == 0 ):
-         print("Sem nada para apostar", dc["nomeBF"] )
+      dic_filtro = dict(filter(lambda elem: elem[1] > 1.95 == 6,dic_op_aposta.items()))
+      if( len(dic_filtro) == 0 ):
+         print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
          return False, -1, 0 # Sem nada para fazer
-      return True, max(dic_op_aposta, key=dic_op_aposta.get), dic_op_aposta[max(dic_op_aposta, key=dic_op_aposta.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
+      return True, max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
    #Provavel metodo para apostar com base no Json
    def BotFairGo(self):
