@@ -58,7 +58,7 @@ class BotFair():
       now_fuso = datetime.datetime.now() + datetime.timedelta(hours=3, minutes=0) # Horário de Londres
       faz_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-1*minutos-1)).strftime('%Y-%m-%dT%H:%M:%SZ')
       daqui_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-1*minutos+1)).strftime('%Y-%m-%dT%H:%M:%SZ')
-      print("Inicio e fim:", faz_45_minutos, daqui_45_minutos)
+      #print("Inicio e fim:", faz_45_minutos, daqui_45_minutos)
       filtro=('{"filter":{"eventTypeIds":["1"],  '
          ' "turnsInPlay" : true, "inPlayOnly" : true, '
          ' "marketStartTime":{"from":"' + faz_45_minutos + '", "to":"' + daqui_45_minutos + '"}},'
@@ -272,7 +272,7 @@ class BotFair():
          #"plU_por_odds=(goal_diff<1.00||goal_diff>4.25||d_g>4 ?-1 :0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256);"
          if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 ): plU_por_odds = -1
          else: plU_por_odds = 0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256
-         print("Per_banca=",plU_por_odds, uo, dc["nomeBF"] )
+         print("Per_banca=",plU_por_odds, uo, dc["nomeBF"], oddsU )
          if( plU_por_odds >= minimo_indice_para_apostar): 
             percent_da_banca = plU_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
