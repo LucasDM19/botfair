@@ -1,5 +1,6 @@
 import logging
 import betfairlightweight
+import os
 
 """
 Historic is the API endpoint that can be used to
@@ -7,6 +8,15 @@ download data betfair provide.
 
 https://historicdata.betfair.com/#/apidocs
 """
+
+def arrumaDiretorio(caminho=None, lista_pastas=None):
+   for idx_pasta in range(len(lista_pastas)):
+      can = os.path.join(caminho, *lista_pastas[0:idx_pasta+1] )
+      if( os.path.isdir(can) ):
+         print(can, "Existe")
+      else:
+         print(can, "N Existe")
+         os.mkdir(can) # Crio o diretorio
 
 # setup logging
 logging.basicConfig(level=logging.INFO)  # change to DEBUG to see log all updates
@@ -52,6 +62,10 @@ print(file_list)
 
 # download the files
 for file in file_list:
-    print(file)
-    download = trading.historic.download_file(file_path=file)
+    print(file) # /xds_nfs/hdfs_supreme/BASIC/2017/Jan/1/28061114/1.128919106.bz2
+    dirs = file.split('/')[3:] # ['BASIC', '2017', 'Jan', '1', '28061114', '1.128919106.bz2']
+    dir2 = dirs[:-1]
+    arrumaDiretorio(caminho=os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol"), lista_pastas=dir2) # Me certifico de que todas as pastas existam
+    caminho = os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol", *dir2 ) # * https://stackoverflow.com/questions/14826888/python-os-path-join-on-a-list/14826889
+    download = trading.historic.download_file(file_path=file, store_directory=caminho)
     print(download)
