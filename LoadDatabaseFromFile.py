@@ -60,8 +60,8 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
                #print("Teste", md['status'] )
                #print( obj['mc'][0] )
                #x = 1/0
-             #if md['status']=='CLOSED':
-             if ((md['status']=='SUSPENDED' or md['status']=='OPEN') and 'OVER_UNDER_' in md['marketType'] ) : #and md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti'
+             #if (md['status']=='SUSPENDED' or md['status']=='OPEN') :
+             if (md['status']=='CLOSED' and 'OVER_UNDER_' in md['marketType'] ) : #and md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti'
                for runner in md['runners']:
                   print("Tem Runners", runner['id'], race_id, runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
                   c.execute("insert or replace into runners values (?,?,?,?,?)", [runner['id'], race_id, runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
@@ -216,10 +216,10 @@ def fazLimpeza():
    conn.commit() # Agora sim grava tudo
    
 if __name__ == '__main__':   
-   c, conn = iniciaBanco('bf_under_over.db')
-   #verificaDiretorios()
+   c, conn = iniciaBanco('bf_under_over_amostra.db')
+   verificaDiretorios()
    #recriaIndices()
    #removeDuplicatas()
    #consolidaOdds()
    #consolidaAFs()
-   fazLimpeza()
+   #fazLimpeza()
