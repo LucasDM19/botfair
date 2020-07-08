@@ -12,6 +12,7 @@ https://historicdata.betfair.com/#/apidocs
 """
 
 nome_arq_pickle = 'hist_lista_arquivos.pkl'
+nome_dts_pickle = 'hist_lista_datas.pkl'
 
 def arrumaDiretorio(caminho=None, lista_pastas=None):
    for idx_pasta in range(len(lista_pastas)):
@@ -68,29 +69,58 @@ def obtemListaDeArquivos(trading, d_ini, m_ini, a_ini, d_fim, m_fim, a_fim):
    print(file_list)
    return file_list
 
-def salvaProgresso(lista):
-   with open(nome_arq_pickle, 'wb') as f:
+def salvaProgresso(lista, nome_arquivo):
+   with open(nome_arquivo, 'wb') as f:
       pickle.dump(lista, f)
 
-trading = conectaNaBetFair()
+def baixaArquivosDoMes(trading, dia, mes, ano):
+   if( os.path.isfile(nome_arq_pickle) ): # Devo continuar a processar a lista
+      with open(nome_arq_pickle, 'wb') as f:
+         pickle.dump(file_list, f)
+   else: # Crio uma lista nova
+      file_list = obtemListaDeArquivos(trading, d_ini=d_ini, m_ini=mes, a_ini=ano, d_fim=d_fim, m_fim=mes, a_fim=ano) # Só pode um mês e um ano
 
-if( os.path.isfile(nome_arq_pickle) ): # Devo continuar a processar a lista
-   with open(nome_arq_pickle, 'wb') as f:
-      pickle.dump(file_list, f)
+   lista_pendentes = [fil for fil in file_list] # Quantos arquivos ainda não foram baixados
+   # download the files
+   for file in file_list:
+       print(file) # /xds_nfs/hdfs_supreme/BASIC/2017/Jan/1/28061114/1.128919106.bz2
+       dirs = file.split('/')[3:] # ['BASIC', '2017', 'Jan', '1', '28061114', '1.128919106.bz2']
+       dir2 = dirs[:-1]
+       arrumaDiretorio(caminho=os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol"), lista_pastas=dir2) # Me certifico de que todas as pastas existam
+       caminho = os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol", *dir2 ) # * https://stackoverflow.com/questions/14826888/python-os-path-join-on-a-list/14826889
+       download = trading.historic.download_file(file_path=file, store_directory=caminho)
+       print(download)
+       lista_pendentes.remove(file) # Foi processado
+       salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
+       
+   os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
+   
+if( os.path.isfile(nome_dts_pickle) ): # Devo continuar a processar a lista
+   with open(nome_dts_pickle, 'wb') as f:
+      pickle.dump(lista_datas, f)
 else: # Crio uma lista nova
-   file_list = obtemListaDeArquivos(trading, d_ini=1, m_ini=2, a_ini=2017, d_fim=31, m_fim=12, a_fim=2017)
+   import datetime 
+   lista_datas = []
+   d_ini=1
+   m_ini=3
+   a_ini=2017
+   d_fim=31
+   m_fim=12
+   a_fim=2017
+   dt_inicial = datetime.date(a_ini, m_ini, d_ini)
+   dt_final = datetime.date(a_fim, m_fim, d_fim)
+   dt_tmp = dt_inicial
+   while( dt_tmp <= dt_final ):
+      #print( dt_tmp, dt_tmp.day, dt_tmp.month, dt_tmp.year )
+      lista_datas.append( [dt_tmp.day, dt_tmp.month, dt_tmp.year] )
+      dt_tmp += datetime.timedelta(days=1)
 
-lista_pendentes = [fil for fil in file_list] # Quantos arquivos ainda não foram baixados
-# download the files
-for file in file_list:
-    print(file) # /xds_nfs/hdfs_supreme/BASIC/2017/Jan/1/28061114/1.128919106.bz2
-    dirs = file.split('/')[3:] # ['BASIC', '2017', 'Jan', '1', '28061114', '1.128919106.bz2']
-    dir2 = dirs[:-1]
-    arrumaDiretorio(caminho=os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol"), lista_pastas=dir2) # Me certifico de que todas as pastas existam
-    caminho = os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol", *dir2 ) # * https://stackoverflow.com/questions/14826888/python-os-path-join-on-a-list/14826889
-    download = trading.historic.download_file(file_path=file, store_directory=caminho)
-    print(download)
-    lista_pendentes.remove(file) # Foi processado
-    salvaProgresso(lista_pendentes) # Armazena a lista do que falta
-    
-os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
+trading = conectaNaBetFair()
+lista_datas_pendentes = [dat for dat in lista_datas] # Quantas datas ainda não foram enviadas
+for dl in lista_datas:
+   print( dl )
+   baixaArquivosDoMes( dia=dl[0], mes=dl[1], ano=dl[2] )
+   lista_datas_pendentes.remove(dl)
+   salvaProgresso(lista_datas_pendentes, nome_dts_pickle)
+   
+os.remove(nome_dts_pickle) # Quando tudo estiver ok, mata o Pickle
