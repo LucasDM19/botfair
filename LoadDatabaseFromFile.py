@@ -40,28 +40,15 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              md=obj['mc'][0]['marketDefinition']                
              
              #if inplay_timestamp==0 and md['inPlay']==True and 'OVER_UNDER_' in md['marketType'] :
-             if ( 'OVER_UNDER_' in md['marketType'] ) : #and md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti'
+             if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType'] ) : #and md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti'
                print("Tem races", race_id, md['marketTime'], inplay_timestamp,md['eventName'], md['name'])
                inplay_timestamp=time        
                c.execute("insert or replace into races values (?,?,datetime(?,'unixepoch'),?,?)", [race_id, md['marketTime'], inplay_timestamp,md['eventName'], md['name'] ])
 
-             #if md['inPlay']==False :
-               #print("Tem afs", md['runners'][0]['id'], race_id, md['runners'][0]['adjustmentFactor'], time)
-               #for runner in md['runners']:
-               #   try:
-               #      c.execute("insert or replace into  afs values (?,?,?,datetime(?,'unixepoch'))", [runner['id'], race_id, runner['adjustmentFactor'], time ])
-               #   except KeyError:
-               #      pass
-             
              #if( md['eventName'] == 'FC Bastia-Borgo v Concarneau' ):
              #if( md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti' ): print( obj['mc'][0] )
-
-             #if( md['status'] == 'OPEN' and 'OVER_UNDER_' in md['marketType']) :
-               #print("Teste", md['status'] )
-               #print( obj['mc'][0] )
-               #x = 1/0
              #if (md['status']=='SUSPENDED' or md['status']=='OPEN') :
-             if (md['status']=='CLOSED' and 'OVER_UNDER_' in md['marketType'] ) : #and md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti'
+             if (md['status']=='CLOSED' and 'OVER_UNDER_' in md['marketType'] ) : 
                for runner in md['runners']:
                   print("Tem Runners", runner['id'], race_id, runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
                   c.execute("insert or replace into runners values (?,?,?,?,?)", [runner['id'], race_id, runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
@@ -216,10 +203,10 @@ def fazLimpeza():
    conn.commit() # Agora sim grava tudo
    
 if __name__ == '__main__':   
-   c, conn = iniciaBanco('bf_under_over_amostra.db')
-   verificaDiretorios()
+   c, conn = iniciaBanco('bf_under_over_leste_europeu.db')
+   #verificaDiretorios()
    #recriaIndices()
    #removeDuplicatas()
-   #consolidaOdds()
+   consolidaOdds()
    #consolidaAFs()
    #fazLimpeza()
