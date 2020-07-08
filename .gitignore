@@ -146,3 +146,5 @@ $RECYCLE.BIN/
 *.bot
 *.txt
 Hush.py
+*.pkl
+*.db
