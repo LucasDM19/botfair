@@ -1,6 +1,8 @@
 import logging
 import betfairlightweight
 import os
+import pickle
+from Hush import usuarioAPI, senhaAPI, APIKey
 
 """
 Historic is the API endpoint that can be used to
@@ -8,6 +10,8 @@ download data betfair provide.
 
 https://historicdata.betfair.com/#/apidocs
 """
+
+nome_arq_pickle = 'hist_lista_arquivos.pkl'
 
 def arrumaDiretorio(caminho=None, lista_pastas=None):
    for idx_pasta in range(len(lista_pastas)):
@@ -18,48 +22,65 @@ def arrumaDiretorio(caminho=None, lista_pastas=None):
          print(can, "N Existe")
          os.mkdir(can) # Crio o diretorio
 
-# setup logging
-logging.basicConfig(level=logging.INFO)  # change to DEBUG to see log all updates
+def conectaNaBetFair():
+   # create trading instance
+   trading = betfairlightweight.APIClient(usuarioAPI,senhaAPI, app_key=APIKey, certs='d:/python/codes/botfair/')
 
-# create trading instance
-trading = betfairlightweight.APIClient("LucasDM19","C$RHWN2wZq8hwEVg!D4q", app_key="vWAjTJ4soKq4y2kP", certs='d:/python/codes/botfair/')
+   # login
+   trading.login()
+   return trading
+   
+def obtemListaDeArquivos(trading, d_ini, m_ini, a_ini, d_fim, m_fim, a_fim):
+   # setup logging
+   logging.basicConfig(level=logging.INFO)  # change to DEBUG to see log all updates
 
-# login
-trading.login()
+   # get my data
+   my_data = trading.historic.get_my_data()
+   for i in my_data:
+       print(i)
 
-# get my data
-my_data = trading.historic.get_my_data()
-for i in my_data:
-    print(i)
+   # get collection options (allows filtering)
+   collection_options = trading.historic.get_collection_options(
+       "Soccer", "Basic Plan", d_ini, m_ini, a_ini, d_fim, m_fim, a_fim
+   )
+   print(collection_options)
 
-# get collection options (allows filtering)
-collection_options = trading.historic.get_collection_options(
-    "Soccer", "Basic Plan", 1, 1, 2017, 31, 1, 2017
-)
-print(collection_options)
+   # get advance basket data size
+   basket_size = trading.historic.get_data_size(
+       "Soccer", "Basic Plan", d_ini, m_ini, a_ini, d_fim, m_fim, a_fim # Horse Racing
+   )
+   print(basket_size) # {'totalSizeMB': 200, 'fileCount': 121397}
 
-# get advance basket data size
-basket_size = trading.historic.get_data_size(
-    "Soccer", "Basic Plan", 1, 1, 2017, 31, 1, 2017 # Horse Racing
-)
-print(basket_size) # {'totalSizeMB': 200, 'fileCount': 121397}
+   # get file list
+   file_list = trading.historic.get_file_list(
+       "Soccer",
+       "Basic Plan",
+       from_day=d_ini,
+       from_month=m_ini,
+       from_year=a_ini,
+       to_day=d_fim,
+       to_month=m_fim,
+       to_year=a_fim,
+       market_types_collection=["OVER_UNDER_15", "OVER_UNDER_25", "OVER_UNDER_35", "OVER_UNDER_45", "OVER_UNDER_55", "OVER_UNDER_65", "OVER_UNDER_75", "OVER_UNDER_85"],
+       countries_collection=[], #"GB", "IE"
+       file_type_collection=["M", "E"], # Market ou Event
+   )
+   print(file_list)
+   return file_list
 
-# get file list
-file_list = trading.historic.get_file_list(
-    "Soccer",
-    "Basic Plan",
-    from_day=1,
-    from_month=1,
-    from_year=2017,
-    to_day=31,
-    to_month=1,
-    to_year=2017,
-    market_types_collection=["OVER_UNDER_15", "OVER_UNDER_25", "OVER_UNDER_35", "OVER_UNDER_45", "OVER_UNDER_55", "OVER_UNDER_65", "OVER_UNDER_75", "OVER_UNDER_85"],
-    countries_collection=[], #"GB", "IE"
-    file_type_collection=["M", "E"], # Market ou Event
-)
-print(file_list)
+def salvaProgresso(lista):
+   with open(nome_arq_pickle, 'wb') as f:
+      pickle.dump(lista, f)
 
+trading = conectaNaBetFair()
+
+if( os.path.isfile(nome_arq_pickle) ): # Devo continuar a processar a lista
+   with open(nome_arq_pickle, 'wb') as f:
+      pickle.dump(file_list, f)
+else: # Crio uma lista nova
+   file_list = obtemListaDeArquivos(trading, d_ini=1, m_ini=2, a_ini=2017, d_fim=31, m_fim=12, a_fim=2017)
+
+lista_pendentes = [fil for fil in file_list] # Quantos arquivos ainda não foram baixados
 # download the files
 for file in file_list:
     print(file) # /xds_nfs/hdfs_supreme/BASIC/2017/Jan/1/28061114/1.128919106.bz2
@@ -69,3 +90,7 @@ for file in file_list:
     caminho = os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol", *dir2 ) # * https://stackoverflow.com/questions/14826888/python-os-path-join-on-a-list/14826889
     download = trading.historic.download_file(file_path=file, store_directory=caminho)
     print(download)
+    lista_pendentes.remove(file) # Foi processado
+    salvaProgresso(lista_pendentes) # Armazena a lista do que falta
+    
+os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
