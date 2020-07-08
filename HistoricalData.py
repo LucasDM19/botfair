@@ -88,10 +88,14 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
        dir2 = dirs[:-1]
        arrumaDiretorio(caminho=os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol"), lista_pastas=dir2) # Me certifico de que todas as pastas existam
        caminho = os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol", *dir2 ) # * https://stackoverflow.com/questions/14826888/python-os-path-join-on-a-list/14826889
-       download = trading.historic.download_file(file_path=file, store_directory=caminho)
-       print(download)
-       lista_pendentes.remove(file) # Foi processado
-       salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
+       try:
+         download = trading.historic.download_file(file_path=file, store_directory=caminho)
+         print(download)
+         lista_pendentes.remove(file) # Foi processado
+         salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
+       except requests.exceptions.ConnectionError as e:
+         print ("Conexão caiu: %s" % e)
+         x = 1/0
        
    os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
    
