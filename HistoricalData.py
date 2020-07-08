@@ -11,7 +11,6 @@ download data betfair provide.
 https://historicdata.betfair.com/#/apidocs
 """
 
-nome_arq_pickle = 'hist_lista_arquivos.pkl'
 nome_dts_pickle = 'hist_lista_datas.pkl'
 
 def arrumaDiretorio(caminho=None, lista_pastas=None):
@@ -74,9 +73,10 @@ def salvaProgresso(lista, nome_arquivo):
       pickle.dump(lista, f)
 
 def baixaArquivosDoMes(trading, dia, mes, ano):
+   nome_arq_pickle = 'hist_lista_arquivos.pkl'
    if( os.path.isfile(nome_arq_pickle) ): # Devo continuar a processar a lista
-      with open(nome_arq_pickle, 'wb') as f:
-         pickle.dump(file_list, f)
+      with open(nome_arq_pickle, 'rb') as f:
+         file_list = pickle.load(f)
    else: # Crio uma lista nova
       file_list = obtemListaDeArquivos(trading, d_ini=d_ini, m_ini=mes, a_ini=ano, d_fim=d_fim, m_fim=mes, a_fim=ano) # Só pode um mês e um ano
 
@@ -96,13 +96,13 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
    os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
    
 if( os.path.isfile(nome_dts_pickle) ): # Devo continuar a processar a lista
-   with open(nome_dts_pickle, 'wb') as f:
-      pickle.dump(lista_datas, f)
+   with open(nome_dts_pickle, 'rb') as f:
+      lista_datas = pickle.load(f)
 else: # Crio uma lista nova
    import datetime 
    lista_datas = []
-   d_ini=1
-   m_ini=3
+   d_ini=4
+   m_ini=2
    a_ini=2017
    d_fim=31
    m_fim=12
@@ -111,7 +111,6 @@ else: # Crio uma lista nova
    dt_final = datetime.date(a_fim, m_fim, d_fim)
    dt_tmp = dt_inicial
    while( dt_tmp <= dt_final ):
-      #print( dt_tmp, dt_tmp.day, dt_tmp.month, dt_tmp.year )
       lista_datas.append( [dt_tmp.day, dt_tmp.month, dt_tmp.year] )
       dt_tmp += datetime.timedelta(days=1)
 
@@ -119,7 +118,7 @@ trading = conectaNaBetFair()
 lista_datas_pendentes = [dat for dat in lista_datas] # Quantas datas ainda não foram enviadas
 for dl in lista_datas:
    print( dl )
-   baixaArquivosDoMes( dia=dl[0], mes=dl[1], ano=dl[2] )
+   baixaArquivosDoMes(trading, dia=dl[0], mes=dl[1], ano=dl[2] )
    lista_datas_pendentes.remove(dl)
    salvaProgresso(lista_datas_pendentes, nome_dts_pickle)
    
