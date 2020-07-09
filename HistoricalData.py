@@ -78,7 +78,7 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
       with open(nome_arq_pickle, 'rb') as f:
          file_list = pickle.load(f)
    else: # Crio uma lista nova
-      file_list = obtemListaDeArquivos(trading, d_ini=d_ini, m_ini=mes, a_ini=ano, d_fim=d_fim, m_fim=mes, a_fim=ano) # Só pode um mês e um ano
+      file_list = obtemListaDeArquivos(trading, d_ini=dia, m_ini=mes, a_ini=ano, d_fim=dia, m_fim=mes, a_fim=ano) # Só pode um mês e um ano
 
    lista_pendentes = [fil for fil in file_list] # Quantos arquivos ainda não foram baixados
    # download the files
@@ -93,8 +93,8 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
          print(download)
          lista_pendentes.remove(file) # Foi processado
          salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
-       except requests.exceptions.ConnectionError as e:
-         print ("Conexão caiu: %s" % e)
+       except TimeoutError as e:
+         print ("Teve Timeout: %s" % e)
          x = 1/0
        
    os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
@@ -105,7 +105,7 @@ if( os.path.isfile(nome_dts_pickle) ): # Devo continuar a processar a lista
 else: # Crio uma lista nova
    import datetime 
    lista_datas = []
-   d_ini=4
+   d_ini=15
    m_ini=2
    a_ini=2017
    d_fim=31
