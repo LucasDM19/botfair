@@ -88,14 +88,21 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
        dir2 = dirs[:-1]
        arrumaDiretorio(caminho=os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol"), lista_pastas=dir2) # Me certifico de que todas as pastas existam
        caminho = os.path.join("D:/", "users", "Lucas", "Downloads", "betfair_data", "data_futebol", *dir2 ) # * https://stackoverflow.com/questions/14826888/python-os-path-join-on-a-list/14826889
-       try:
-         download = trading.historic.download_file(file_path=file, store_directory=caminho)
-         print(download)
-         lista_pendentes.remove(file) # Foi processado
-         salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
-       except TimeoutError as e:
-         print ("Teve Timeout: %s" % e)
-         x = 1/0
+       download_ok = False
+       while not download_ok:
+          try:
+            download = trading.historic.download_file(file_path=file, store_directory=caminho)
+            print(download)
+            lista_pendentes.remove(file) # Foi processado
+            salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
+            download_ok = True
+          except Exception as e:
+            print ("Teve Timeout: %s" % e)
+            import time
+            time.sleep(3) # Espero 3 segundos
+            trading = conectaNaBetFair()
+            download_ok = False
+            x = 1/0
        
    os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
    
@@ -105,7 +112,7 @@ if( os.path.isfile(nome_dts_pickle) ): # Devo continuar a processar a lista
 else: # Crio uma lista nova
    import datetime 
    lista_datas = []
-   d_ini=15
+   d_ini=17
    m_ini=2
    a_ini=2017
    d_fim=31
@@ -121,9 +128,10 @@ else: # Crio uma lista nova
 trading = conectaNaBetFair()
 lista_datas_pendentes = [dat for dat in lista_datas] # Quantas datas ainda não foram enviadas
 for dl in lista_datas:
-   print( dl )
+   print( dl, dl[0], dl[1], dl[2] )
    baixaArquivosDoMes(trading, dia=dl[0], mes=dl[1], ano=dl[2] )
    lista_datas_pendentes.remove(dl)
+   print(" *** SALVANDO AGORA!")
    salvaProgresso(lista_datas_pendentes, nome_dts_pickle)
    
 os.remove(nome_dts_pickle) # Quando tudo estiver ok, mata o Pickle
