@@ -14,10 +14,10 @@ def iniciaBanco(nome_banco):
 
    c.execute('create table if not exists odds (RunnerId, RaceId, LastTradedPrice, PublishedTime)')
    c.execute('create table if not exists odds_position (RunnerId, RaceId, CurrentPrice , MinutesUntillRace INTEGER)') # Odds por minuto
-   c.execute('create table if not exists races (RaceId, MarketTime, InplayTimestamp, MarketName, MarketVenue)')
+   c.execute('create table if not exists races (MarketTime, InplayTimestamp, MarketName, EventId, Country)')
    c.execute('create table if not exists afs (RunnerId, RaceId, AdjustmentFactor, PublishedTime)')
    c.execute('create table if not exists afs_position (RunnerId, RaceId, CurrentAF, MinutesUntillRace INTEGER)') # AFs por minuto
-   c.execute('create table if not exists runners (RunnerId, RaceId, RunnerName, WinLose INTEGER, BSP INTEGER)')
+   c.execute('create table if not exists runners (RunnerId, RaceId, EventId, RunnerName, WinLose INTEGER, BSP INTEGER)')
    return c, conn
 
 def insere_bz2_sqlite(arquivo_bz2, arquivo):
@@ -41,17 +41,17 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              
              #if inplay_timestamp==0 and md['inPlay']==True and 'OVER_UNDER_' in md['marketType'] :
              if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType'] ) : #and md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti'
-               print("Tem races", race_id, md['marketTime'], inplay_timestamp,md['eventName'], md['name'])
+               print("Tem races", md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] )
                inplay_timestamp=time        
-               c.execute("insert or replace into races values (?,?,datetime(?,'unixepoch'),?,?)", [race_id, md['marketTime'], inplay_timestamp,md['eventName'], md['name'] ])
+               c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] ])
 
              #if( md['eventName'] == 'FC Bastia-Borgo v Concarneau' ):
              #if( md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti' ): print( obj['mc'][0] )
              #if (md['status']=='SUSPENDED' or md['status']=='OPEN') :
              if (md['status']=='CLOSED' and 'OVER_UNDER_' in md['marketType'] ) : 
                for runner in md['runners']:
-                  print("Tem Runners", runner['id'], race_id, runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
-                  c.execute("insert or replace into runners values (?,?,?,?,?)", [runner['id'], race_id, runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
+                  print("Tem Runners", runner['id'], race_id, md['eventId'], runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
+                  c.execute("insert or replace into runners values (?,?,?,?,?,?)", [runner['id'], race_id, md['eventId'], runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
 
       conn.commit()
 
@@ -90,6 +90,8 @@ def recriaIndices():
    # Quando acaba tudo, cria (ou recria) os indices
    c.execute("DROP INDEX IF EXISTS idx_races_RaceId")
    c.execute("CREATE INDEX idx_races_RaceId ON races ( RaceId ASC )")
+   c.execute("DROP INDEX IF EXISTS idx_races_EventId")
+   c.execute("CREATE INDEX idx_races_EventId ON races ( EventId ASC )")
    c.execute("DROP INDEX IF EXISTS idx_runners_RaceId")
    c.execute("CREATE INDEX idx_runners_RaceId ON runners ( RaceId )")
    c.execute("DROP INDEX IF EXISTS idx_odds_RaceId")
@@ -204,9 +206,9 @@ def fazLimpeza():
    
 if __name__ == '__main__':   
    c, conn = iniciaBanco('bf_under_over_leste_europeu.db')
-   #verificaDiretorios()
-   #recriaIndices()
-   #removeDuplicatas()
-   consolidaOdds()
+   verificaDiretorios()
+   recriaIndices()
+   removeDuplicatas()
+   #consolidaOdds()
    #consolidaAFs()
-   #fazLimpeza()
+   fazLimpeza()

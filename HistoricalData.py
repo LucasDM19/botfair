@@ -102,7 +102,6 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
             time.sleep(3) # Espero 3 segundos
             trading = conectaNaBetFair()
             download_ok = False
-            x = 1/0
        
    os.remove(nome_arq_pickle) # Quando tudo estiver ok, mata o Pickle
    
