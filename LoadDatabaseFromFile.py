@@ -88,8 +88,6 @@ def verificaDiretorios():
 def recriaIndices():
    global c, conn
    # Quando acaba tudo, cria (ou recria) os indices
-   c.execute("DROP INDEX IF EXISTS idx_races_RaceId")
-   c.execute("CREATE INDEX idx_races_RaceId ON races ( RaceId ASC )")
    c.execute("DROP INDEX IF EXISTS idx_races_EventId")
    c.execute("CREATE INDEX idx_races_EventId ON races ( EventId ASC )")
    c.execute("DROP INDEX IF EXISTS idx_runners_RaceId")
@@ -100,11 +98,12 @@ def recriaIndices():
    c.execute("CREATE INDEX idx_odds_RunnerId ON odds ( RunnerId )")
    c.execute("DROP INDEX IF EXISTS idx_odds_RunnerId_PublishedTime")
    c.execute("CREATE INDEX idx_odds_RunnerId_PublishedTime ON odds (RunnerId, PublishedTime)")
+   c.execute("DROP INDEX IF EXISTS idx_odds_position_RaceId")
    c.execute("CREATE INDEX idx_odds_position_RaceId ON odds_position ( RaceId ASC )")
    c.execute("DROP INDEX IF EXISTS idx_odds_position_RunnerId")
    c.execute("CREATE INDEX idx_odds_position_RunnerId ON odds_position ( RunnerId )")
-   c.execute("DROP INDEX IF EXISTS idx_races_RaceId_MarketTime")
-   c.execute("CREATE INDEX idx_races_RaceId_MarketTime ON races (RaceId, MarketTime)")
+   c.execute("DROP INDEX IF EXISTS idx_races_EventId_MarketTime")
+   c.execute("CREATE INDEX idx_races_EventId_MarketTime ON races (EventId, MarketTime)")
    conn.commit() # Agora sim grava tudo
    print("Índices recriados")
    
@@ -206,7 +205,7 @@ def fazLimpeza():
    
 if __name__ == '__main__':   
    c, conn = iniciaBanco('bf_under_over_leste_europeu.db')
-   verificaDiretorios()
+   #verificaDiretorios()
    recriaIndices()
    removeDuplicatas()
    #consolidaOdds()
