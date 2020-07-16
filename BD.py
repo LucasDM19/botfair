@@ -13,7 +13,29 @@ class BaseDeDados:
       self.nomeBD = nomeBanco
       conn = sqlite3.connect(self.nomeBD)
       self.cursorBD = conn.cursor()
-      
+   
+   def obtemSumarioOddsUnderOver(self, minuto=-70):
+      if( self.nomeBD is None ): return 1/0
+      lista_odds = []
+      conn = sqlite3.connect(self.nomeBD)
+      c_sumario = conn.cursor()
+      c_sumario.execute("""SELECT races.MarketTime, races.MarketName, runners.RunnerName, o.CurrentPrice, min(o.MinutesUntillRace) as mini_min, runners.WinLose
+                           FROM odds_position as o, runners, races
+                           WHERE runners.RunnerId = o.RunnerId
+                             AND runners.RaceId = o.RaceId
+                             AND runners.EventId = races.EventId
+                             AND runners.EventId = o.EventId
+                             AND o.MinutesUntillRace >= ?
+                             AND runners.RunnerName LIKE "%Goals%"
+                           GROUP BY o.RunnerId, o.RaceId, o.EventId
+                           ORDER BY o.EventId, o.RaceId, o.RunnerId """, (minuto,) )
+      while True: 
+         row = c_sumario.fetchone()
+         if row == None: break  # Acabou o sqlite
+         #event_id, market_time, inplay_timestamp, market_name, country = row
+         lista_odds.append(row)
+      return lista_odds
+         
    def obtemPartidas(self, qtd_corridas, ordem="ASC"):
       if( self.nomeBD is None ): return 1/0
       lista_corridas = []
