@@ -147,9 +147,9 @@ def fazLimpeza():
    conn.commit() # Agora sim grava tudo
    
 if __name__ == '__main__':   
-   c, conn = iniciaBanco('bf_under_over_amostra.db')
+   c, conn = iniciaBanco('bf_under_over_leste_europeu.db')
    lista_ids = [] # Para evitar duplicados no races
-   #verificaDiretorios()
+   verificaDiretorios()
    #recriaIndices()
    #removeDuplicatas()
    consolidaOdds()

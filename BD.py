@@ -1,7 +1,51 @@
 from Hush import usuarioBD, senhaBD, hostBD, databaseName, statsURL
 
+import sqlite3
+import operator
+class BaseDeDados:
+   """
+   Representa o fluxo de odds se movimentando
+   """
+   def __init__(self):
+      self.cursorBD = ''
+   
+   def conectaBaseDados(self, nomeBanco):
+      self.nomeBD = nomeBanco
+      conn = sqlite3.connect(self.nomeBD)
+      self.cursorBD = conn.cursor()
+      
+   def obtemPartidas(self, qtd_corridas, ordem="ASC"):
+      if( self.nomeBD is None ): return 1/0
+      lista_corridas = []
+      conn = sqlite3.connect(self.nomeBD)
+      c_corrida = conn.cursor()
+      if( ordem != "ASC" and ordem != "DESC" ): return 1/0
+      if( ordem == "ASC" ):
+         c_corrida.execute(""" SELECT DISTINCT EventId, MarketTime, InplayTimestamp, MarketName, Country FROM races GROUP BY EventId ORDER BY MarketName ASC LIMIT ?; """, (qtd_corridas,) )
+      if( ordem == "DESC" ):
+         c_corrida.execute(""" SELECT DISTINCT EventId, MarketTime, InplayTimestamp, MarketName, Country FROM races GROUP BY EventId ORDER BY MarketName DESC LIMIT ?; """, (qtd_corridas,) )
+      while True: 
+         row = c_corrida.fetchone()
+         if row == None: break  # Acabou o sqlite
+         event_id, market_time, inplay_timestamp, market_name, country = row
+         lista_corridas.append(event_id)
+      return lista_corridas
+      
+   def obtemSumarioDasPartidas(self):
+      if( self.nomeBD is None ): return 1/0
+      conn = sqlite3.connect(self.nomeBD)
+      c = conn.cursor()
+      c.execute("""SELECT min(races.MarketTime) as data_inicial, MAX(races.MarketTime) as data_final, COUNT(DISTINCT(EventId)) as total_corridas 
+      FROM races ORDER BY total_corridas DESC, data_inicial ASC""")
+      while True: 
+         row = c.fetchone()
+         if row == None: break  # Acabou o sqlite
+         data_inicial, data_final, total_partidas = row
+      return data_inicial, data_final, total_partidas
+      
 """
 Classe que se conecta com um banco de dados.
+Candidata a entrar para o ostracismo.
 """
 class BancodeDados():
    def __init__(self):
