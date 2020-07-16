@@ -107,6 +107,8 @@ def recriaIndices():
    c.execute("CREATE INDEX idx_races_EventId_MarketTime ON races (EventId, MarketTime)")
    c.execute("DROP INDEX IF EXISTS idx_runners_EventId")
    c.execute("CREATE INDEX idx_runners_EventId ON runners (EventId )")
+   c.execute("DROP INDEX IF EXISTS id_odds_position_MinutesUntillRace")
+   c.execute("CREATE INDEX id_odds_position_MinutesUntillRace ON odds_position (MinutesUntillRace)")
    conn.commit() # Agora sim grava tudo
    print("Índices recriados")
    
@@ -149,9 +151,9 @@ def fazLimpeza():
 if __name__ == '__main__':   
    c, conn = iniciaBanco('bf_under_over_leste_europeu.db')
    lista_ids = [] # Para evitar duplicados no races
-   verificaDiretorios()
-   #recriaIndices()
-   #removeDuplicatas()
+   #verificaDiretorios()
+   recriaIndices()
+   removeDuplicatas()
    consolidaOdds()
    #consolidaAFs()
-   #fazLimpeza()
+   fazLimpeza()

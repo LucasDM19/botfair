@@ -5,6 +5,7 @@ import pickle
 from Hush import usuarioAPI, senhaAPI, APIKey
 import sys
 import datetime
+import calendar 
 
 """
 Historic is the API endpoint that can be used to
@@ -14,8 +15,11 @@ https://historicdata.betfair.com/#/apidocs
 """
 
 ext = '' if len(sys.argv) <= 1 else sys.argv[1]
-ano = datetime.datetime.now().year if len(sys.argv) <= 2 else sys.argv[2]
-print( ext, ano )
+ano = datetime.datetime.now().year if len(sys.argv) <= 2 else int(sys.argv[2])
+mes = datetime.datetime.now().month if len(sys.argv) <= 3 else int(sys.argv[3])
+dia_i = 1 if len(sys.argv) <= 4 else int(sys.argv[4])
+dia_f = calendar.monthrange(ano, mes)[1] if len(sys.argv) <= 5 else int(sys.argv[5])
+print( ext, ano, mes, dia_i, dia_f )
 nome_dts_pickle = 'hist_lista_datas'+ext+'.pkl'
 
 def arrumaDiretorio(caminho=None, lista_pastas=None):
@@ -116,11 +120,11 @@ if( os.path.isfile(nome_dts_pickle) ): # Devo continuar a processar a lista
 else: # Crio uma lista nova
    import datetime 
    lista_datas = []
-   d_ini=2
-   m_ini=5
+   d_ini=dia_i
+   m_ini=mes
    a_ini=ano
-   d_fim=31
-   m_fim=12
+   d_fim=dia_f
+   m_fim=mes
    a_fim=ano
    dt_inicial = datetime.date(a_ini, m_ini, d_ini)
    dt_final = datetime.date(a_fim, m_fim, d_fim)
