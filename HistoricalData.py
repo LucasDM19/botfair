@@ -3,6 +3,8 @@ import betfairlightweight
 import os
 import pickle
 from Hush import usuarioAPI, senhaAPI, APIKey
+import sys
+import datetime
 
 """
 Historic is the API endpoint that can be used to
@@ -11,7 +13,10 @@ download data betfair provide.
 https://historicdata.betfair.com/#/apidocs
 """
 
-nome_dts_pickle = 'hist_lista_datas.pkl'
+ext = '' if len(sys.argv) <= 1 else sys.argv[1]
+ano = datetime.datetime.now().year if len(sys.argv) <= 2 else sys.argv[2]
+print( ext, ano )
+nome_dts_pickle = 'hist_lista_datas'+ext+'.pkl'
 
 def arrumaDiretorio(caminho=None, lista_pastas=None):
    for idx_pasta in range(len(lista_pastas)):
@@ -73,7 +78,7 @@ def salvaProgresso(lista, nome_arquivo):
       pickle.dump(lista, f)
 
 def baixaArquivosDoMes(trading, dia, mes, ano):
-   nome_arq_pickle = 'hist_lista_arquivos.pkl'
+   nome_arq_pickle = 'hist_lista_arquivos'+ext+'.pkl'
    if( os.path.isfile(nome_arq_pickle) ): # Devo continuar a processar a lista
       with open(nome_arq_pickle, 'rb') as f:
          file_list = pickle.load(f)
@@ -111,12 +116,12 @@ if( os.path.isfile(nome_dts_pickle) ): # Devo continuar a processar a lista
 else: # Crio uma lista nova
    import datetime 
    lista_datas = []
-   d_ini=17
-   m_ini=2
-   a_ini=2017
+   d_ini=2
+   m_ini=5
+   a_ini=ano
    d_fim=31
    m_fim=12
-   a_fim=2017
+   a_fim=ano
    dt_inicial = datetime.date(a_ini, m_ini, d_ini)
    dt_final = datetime.date(a_fim, m_fim, d_fim)
    dt_tmp = dt_inicial

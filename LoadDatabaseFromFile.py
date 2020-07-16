@@ -33,7 +33,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
          time=obj['pt']/1000.0
          if 'rc' in obj['mc'][0]  :
             for odd in obj['mc'][0]['rc']:
-                print("Tem odds", odd['id'], race_id, odd['ltp'], time )
+                #print("Tem odds", odd['id'], race_id, odd['ltp'], time )
                 c.execute("insert or replace into  odds values (?,?,?,datetime(?,'unixepoch'))", [odd['id'], race_id, odd['ltp'], time ])
          
          if 'marketDefinition' in obj['mc'][0]:
@@ -41,7 +41,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              
              #if inplay_timestamp==0 and md['inPlay']==True and 'OVER_UNDER_' in md['marketType'] :
              if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType']  and md['eventId'] not in lista_ids ) : 
-               print("Tem races", md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] )
+               #print("Tem races", md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] )
                inplay_timestamp=time        
                c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], int(md['eventId']), md['countryCode'] ])
                lista_ids.append(md['eventId'])
@@ -51,7 +51,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              #if (md['status']=='SUSPENDED' or md['status']=='OPEN') :
              if (md['status']=='CLOSED' and 'OVER_UNDER_' in md['marketType'] ) : 
                for runner in md['runners']:
-                  print("Tem Runners", runner['id'], race_id, md['eventId'], runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
+                  #print("Tem Runners", runner['id'], race_id, md['eventId'], runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
                   c.execute("insert or replace into runners values (?,?,?,?,?,?)", [runner['id'], race_id, int(md['eventId']), runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
 
       conn.commit()
