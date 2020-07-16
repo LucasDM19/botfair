@@ -13,10 +13,10 @@ def iniciaBanco(nome_banco):
    c = conn.cursor()
 
    c.execute('create table if not exists odds (RunnerId, RaceId, LastTradedPrice, PublishedTime)')
-   c.execute('create table if not exists odds_position (RunnerId, RaceId, CurrentPrice , MinutesUntillRace INTEGER)') # Odds por minuto
+   #c.execute('create table if not exists odds_position (RunnerId, RaceId, CurrentPrice , MinutesUntillRace INTEGER)') # Odds por minuto
    c.execute('create table if not exists races (MarketTime, InplayTimestamp, MarketName, EventId, Country)')
    c.execute('create table if not exists afs (RunnerId, RaceId, AdjustmentFactor, PublishedTime)')
-   c.execute('create table if not exists afs_position (RunnerId, RaceId, CurrentAF, MinutesUntillRace INTEGER)') # AFs por minuto
+   #c.execute('create table if not exists afs_position (RunnerId, RaceId, CurrentAF, MinutesUntillRace INTEGER)') # AFs por minuto
    c.execute('create table if not exists runners (RunnerId, RaceId, EventId, RunnerName, WinLose INTEGER, BSP INTEGER)')
    return c, conn
 
@@ -43,7 +43,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType']  and md['eventId'] not in lista_ids ) : 
                print("Tem races", md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] )
                inplay_timestamp=time        
-               c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] ])
+               c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], int(md['eventId']), md['countryCode'] ])
                lista_ids.append(md['eventId'])
 
              #if( md['eventName'] == 'FC Bastia-Borgo v Concarneau' ):
@@ -52,7 +52,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              if (md['status']=='CLOSED' and 'OVER_UNDER_' in md['marketType'] ) : 
                for runner in md['runners']:
                   print("Tem Runners", runner['id'], race_id, md['eventId'], runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
-                  c.execute("insert or replace into runners values (?,?,?,?,?,?)", [runner['id'], race_id, md['eventId'], runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
+                  c.execute("insert or replace into runners values (?,?,?,?,?,?)", [runner['id'], race_id, int(md['eventId']), runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
 
       conn.commit()
 
@@ -124,81 +124,20 @@ def removeDuplicatas():
 
 def consolidaOdds():
     global c, conn
-    def chunks(data, rows=10000):
-        """ Divides the data into 10000 rows each """
-
-        for i in range(0, len(data), rows):
-            yield data[i:i+rows]
-    def gravaDados(dados, c_grava):        
-        print( len(dados) )
-        divData = chunks(dados) # divide into 10000 rows each
-        for chunk in divData:
-            c_grava.execute('BEGIN TRANSACTION')
-
-            for field1, field2, field3, field4 in chunk:
-                c_grava.execute('INSERT OR IGNORE INTO odds_position VALUES (?,?,?,?)', (field1, field2, field3, field4))
-
-            c_grava.execute('COMMIT')
-        
     print("Agora agrupando odds por minuto")
-    dados_corridas = {} # Agrupa por todas as corridas, por precaução
-    dados = []
-    odds_ordenadas = None # Por questão de lógica
-    race_id_ant = None # Para o último minuto da corrida anterior
-    c_grava = conn.cursor() # Para inserir os dados
-    c.execute("""SELECT DISTINCT races.EventId, odds.RaceId, odds.RunnerId, odds.LastTradedPrice, odds.PublishedTime,
-                   Cast (( JulianDay(races.MarketTime) - JulianDay(odds.PublishedTime) ) * 24 * 60 As Integer ) as Dif_Min
-                   FROM odds, races, runners
-                   WHERE runners.RaceId = odds.RaceId
-				         AND runners.EventId = races.EventId
-                     AND odds.RaceId NOT IN (SELECT RaceId FROM odds_position)
-                   ORDER BY odds.RaceId, odds.PublishedTime """) # Pergunta: quais corridas que tem odds, mas não tem dados consolidados?
-    while True: 
-        row = c.fetchone()
-        if row == None: break  # Acabou o sqlite
-        event_id, race_id, runner_id, l_t_p, published_time, d_m = row
-        dif_min = int(d_m) # converto para facilitar
-        last_traded_price = float(l_t_p) # converto para facilitar
-        if( event_id not in dados_corridas ):
-            lista_participantes = {}
-            if( race_id_ant is not None ): # Publicar último minuto da corrida anterior
-                #print("\n Aguenta1")
-                for c_id in odds_ordenadas:
-                    #print("Agora sim. Tome!", c_id, race_id_ant, odds_ordenadas[c_id], published_time, dif_min_ant  )
-                    dados.append( (c_id, race_id_ant, odds_ordenadas[c_id], dif_min_ant) )
-            event_id_ant = event_id
-            dif_min_ant = None # Salvo minuto anterior, para ver saltos
-            if( len(dados_corridas) % 1000 == 0 and len(dados_corridas) > 0 ): # Hora de descarregar alguns dados
-                print("Gravando dados no banco de dados", len(dados_corridas) )
-                gravaDados(dados, c_grava)
-                dados = [] # Começa novo lote
-            c2 = conn.cursor() # Quais são todos os cavalos participantes dessa corrida?
-            c2.execute(""" SELECT * FROM runners WHERE runners.EventId = ? """, (event_id,) )       
-            while True: 
-                row2 = c2.fetchone()
-                if row2 == None: break  # Acabou o sqlite
-                runner_id2, race_id2, event_id2, runner_name, WinLose, BSP = row2
-                lista_participantes[runner_id2] = -1.01 # Odd inicial
-            dados_corridas[event_id] = lista_participantes # Dictionaty para cada corrida
-        if( dif_min_ant is None or dif_min != dif_min_ant ): # Teve quebra de minuto, ou é o primeiro minuto
-            if(dif_min_ant is not None): 
-                for min_silencio in range(dif_min_ant+1,dif_min): # Sem fluxo de odds novas - Tudo igual
-                    for c_id in odds_ordenadas:
-                        #print("Agora sim. Silêncio...", c_id, race_id, odds_ordenadas[c_id], published_time, min_silencio, dif_min, dif_min_ant )
-                        dados.append( (c_id, race_id_ant, odds_ordenadas[c_id], min_silencio) )
-            if( odds_ordenadas is not None and dif_min_ant is not None):
-                #print("\n Aguenta2")
-                for c_id in odds_ordenadas:
-                    #print("Agora sim. Tome!", c_id, race_id, odds_ordenadas[c_id], published_time, dif_min_ant  )
-                    dados.append( (c_id, race_id, odds_ordenadas[c_id], dif_min_ant) )
-            dif_min_ant = dif_min
-        dados_corridas[event_id][runner_id] = last_traded_price #Atualiza as odds dessa corrida
-        odds_ordenadas = dict( sorted( dados_corridas[event_id].items(), key=operator.itemgetter(1),reverse=False ) ) # Para ficar igual no site
-    if( odds_ordenadas is not None):
-        #print("\n Aguenta3")
-        for c_id in odds_ordenadas:
-            #print("Agora sim. Tome!", c_id, race_id, odds_ordenadas[c_id], published_time, dif_min_ant  ) # O último minuto da última corrida
-            dados.append( (c_id, race_id, odds_ordenadas[c_id], dif_min_ant) )  
+    c.execute("""create table if not exists odds_position as 
+    SELECT RunnerId, RaceId, EventId, LastTradedPrice as CurrentPrice, Dif_Min as MinutesUntillRace
+      from (SELECT races.EventId, odds.RaceId, odds.RunnerId, odds.LastTradedPrice, odds.PublishedTime,
+      Cast (( JulianDay(races.MarketTime) - JulianDay(odds.PublishedTime) ) * 24 * 60 As Integer ) as Dif_Min,
+       MAX(odds.PublishedTime) as ultima, odds.LastTradedPrice
+      FROM odds, races, runners
+      WHERE runners.RaceId = odds.RaceId
+        AND runners.EventId = races.EventId
+        AND runners.RunnerId = runners.RunnerId
+        AND odds.RunnerId = runners.RunnerId
+      GROUP BY races.EventId, odds.RaceId, odds.RunnerId, Cast (( JulianDay(races.MarketTime) - JulianDay(odds.PublishedTime) ) * 24 * 60 As Integer )
+      ORDER BY races.EventId, odds.RaceId, odds.RunnerId, odds.PublishedTime) """)
+    conn.commit() # Agora sim grava tudo
 
 def fazLimpeza():
    global c, conn
@@ -210,9 +149,9 @@ def fazLimpeza():
 if __name__ == '__main__':   
    c, conn = iniciaBanco('bf_under_over_amostra.db')
    lista_ids = [] # Para evitar duplicados no races
-   verificaDiretorios()
+   #verificaDiretorios()
    #recriaIndices()
    #removeDuplicatas()
-   #consolidaOdds()
+   consolidaOdds()
    #consolidaAFs()
    #fazLimpeza()
