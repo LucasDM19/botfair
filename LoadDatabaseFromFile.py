@@ -21,8 +21,7 @@ def iniciaBanco(nome_banco):
    return c, conn
 
 def insere_bz2_sqlite(arquivo_bz2, arquivo):
-   global c, conn
-   lista_ids = [] # Para evitar duplicados
+   global c, conn, lista_ids
    with bz2.open(arquivo_bz2, "rt") as bz_file:
       md=json.loads( next(bz_file)  )['mc'][0]['marketDefinition']
       race_id=arquivo.replace('.bz2','')
@@ -209,10 +208,11 @@ def fazLimpeza():
    conn.commit() # Agora sim grava tudo
    
 if __name__ == '__main__':   
-   c, conn = iniciaBanco('bf_under_over_leste_europeu.db')
-   #verificaDiretorios()
+   c, conn = iniciaBanco('bf_under_over_amostra.db')
+   lista_ids = [] # Para evitar duplicados no races
+   verificaDiretorios()
    #recriaIndices()
-   removeDuplicatas()
+   #removeDuplicatas()
    #consolidaOdds()
    #consolidaAFs()
    #fazLimpeza()
