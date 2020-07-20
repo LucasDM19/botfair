@@ -12,5 +12,5 @@ def obtemDadosUnderOver(nome_banco):
    return df
 
 if __name__ == '__main__':   
-   df = obtemDadosUnderOver(nome_banco='bf_under_over_amostra.db') 
+   df = obtemDadosUnderOver(nome_banco='bf_under_over_leste_europeu.db') 
    df.to_csv('out_les_eur_tst.csv', index=False) # Salvando para fuçar depois

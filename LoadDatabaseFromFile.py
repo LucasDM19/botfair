@@ -1,5 +1,5 @@
 #coding: utf-8
-from Hush import caminhos_or, caminho_destino_bz2
+from Hush import caminhos_or as caminho_inicial, caminho_destino_bz2
 from os import listdir
 from os import path
 import bz2
@@ -7,6 +7,8 @@ import json
 from shutil import copyfile
 import sqlite3
 import operator # Para odenar um dicionário
+import sys
+import datetime # Parâmetros de data
 
 def iniciaBanco(nome_banco):
    conn = sqlite3.connect(nome_banco)
@@ -72,7 +74,7 @@ def processa_bz2(arquivo_bz2, arquivo):
       except json.decoder.JSONDecodeError:
          pass
 
-def verificaDiretorios():  
+def verificaDiretorios(caminhos_or=caminho_inicial):  
    #Verificando recursivamente os diretorios. Para quando encontra um arquivo.
    while( len(caminhos_or) > 0 ):
       caminho = caminhos_or.pop()
@@ -99,16 +101,16 @@ def recriaIndices():
    c.execute("CREATE INDEX idx_odds_RunnerId ON odds ( RunnerId )")
    c.execute("DROP INDEX IF EXISTS idx_odds_RunnerId_PublishedTime")
    c.execute("CREATE INDEX idx_odds_RunnerId_PublishedTime ON odds (RunnerId, PublishedTime)")
-   c.execute("DROP INDEX IF EXISTS idx_odds_position_RaceId")
-   c.execute("CREATE INDEX idx_odds_position_RaceId ON odds_position ( RaceId ASC )")
-   c.execute("DROP INDEX IF EXISTS idx_odds_position_RunnerId")
-   c.execute("CREATE INDEX idx_odds_position_RunnerId ON odds_position ( RunnerId )")
+   #c.execute("DROP INDEX IF EXISTS idx_odds_position_RaceId")
+   #c.execute("CREATE INDEX idx_odds_position_RaceId ON odds_position ( RaceId ASC )")
+   #c.execute("DROP INDEX IF EXISTS idx_odds_position_RunnerId")
+   #c.execute("CREATE INDEX idx_odds_position_RunnerId ON odds_position ( RunnerId )")
+   #c.execute("DROP INDEX IF EXISTS id_odds_position_MinutesUntillRace")
+   #c.execute("CREATE INDEX id_odds_position_MinutesUntillRace ON odds_position (MinutesUntillRace)")
    c.execute("DROP INDEX IF EXISTS idx_races_EventId_MarketTime")
    c.execute("CREATE INDEX idx_races_EventId_MarketTime ON races (EventId, MarketTime)")
    c.execute("DROP INDEX IF EXISTS idx_runners_EventId")
    c.execute("CREATE INDEX idx_runners_EventId ON runners (EventId )")
-   c.execute("DROP INDEX IF EXISTS id_odds_position_MinutesUntillRace")
-   c.execute("CREATE INDEX id_odds_position_MinutesUntillRace ON odds_position (MinutesUntillRace)")
    conn.commit() # Agora sim grava tudo
    print("Índices recriados")
    
@@ -148,10 +150,17 @@ def fazLimpeza():
    c.execute("VACUUM")
    conn.commit() # Agora sim grava tudo
    
-if __name__ == '__main__':   
-   c, conn = iniciaBanco('bf_under_over_leste_europeu.db')
+if __name__ == '__main__': 
+   ano = datetime.datetime.now().year if len(sys.argv) <= 1 else int(sys.argv[1])
+   mes = datetime.datetime.now().month if len(sys.argv) <= 2 else int(sys.argv[2])
+   nome_mes = datetime.date(year=ano, month=mes, day=1).strftime("%b")
+   caminho_mes_ano = []
+   caminho_mes_ano.append( caminho_inicial[0] + str(ano) + '\\' + str(nome_mes) + '\\' )
+   print( ano, mes, nome_mes, caminho_mes_ano )
+  
+   c, conn = iniciaBanco('bf_under_over_'+str(ano)+str(mes)+'.db')
    lista_ids = [] # Para evitar duplicados no races
-   #verificaDiretorios()
+   verificaDiretorios(caminhos_or=caminho_mes_ano)
    recriaIndices()
    removeDuplicatas()
    consolidaOdds()

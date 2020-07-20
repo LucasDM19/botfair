@@ -148,3 +148,4 @@ $RECYCLE.BIN/
 Hush.py
 *.pkl
 *.db
+*.db-journal
