@@ -42,11 +42,11 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              md=obj['mc'][0]['marketDefinition']                
              
              #if inplay_timestamp==0 and md['inPlay']==True and 'OVER_UNDER_' in md['marketType'] :
-             if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType']  and md['eventId'] not in lista_ids ) : 
+             if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType']  and [md['eventId'], md['eventName']] not in lista_ids ) : 
                #print("Tem races", md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] )
                inplay_timestamp=time        
                c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], int(md['eventId']), md['countryCode'] ])
-               lista_ids.append(md['eventId'])
+               lista_ids.append( [md['eventId'], md['eventName']] )
 
              #if( md['eventName'] == 'FC Bastia-Borgo v Concarneau' ):
              #if( md['eventName'] == 'FC Zugdidi v FC Kolkheti Poti' ): print( obj['mc'][0] )
@@ -73,6 +73,8 @@ def processa_bz2(arquivo_bz2, arquivo):
         pass
       except json.decoder.JSONDecodeError:
          pass
+      except OSError:
+         print("Arquivo", bz_file, " com erro ***")
 
 def verificaDiretorios(caminhos_or=caminho_inicial):  
    #Verificando recursivamente os diretorios. Para quando encontra um arquivo.
@@ -149,20 +151,30 @@ def fazLimpeza():
    print("Hora do aspirador")
    c.execute("VACUUM")
    conn.commit() # Agora sim grava tudo
+
+def descarregaDaMemoria(conn_memoria):
+   #conn_memoria = sqlite3.connect(':memory:')
+   print("Hora de sair da memória!")
+
+   # dump old database in the new one
+   with sqlite3.connect('bf_under_over_full.db') as new_db:
+       new_db.executescript("".join(conn_memoria.iterdump()))
    
 if __name__ == '__main__': 
-   ano = datetime.datetime.now().year if len(sys.argv) <= 1 else int(sys.argv[1])
-   mes = datetime.datetime.now().month if len(sys.argv) <= 2 else int(sys.argv[2])
-   nome_mes = datetime.date(year=ano, month=mes, day=1).strftime("%b")
-   caminho_mes_ano = []
-   caminho_mes_ano.append( caminho_inicial[0] + str(ano) + '\\' + str(nome_mes) + '\\' )
-   print( ano, mes, nome_mes, caminho_mes_ano )
+   #ano = datetime.datetime.now().year if len(sys.argv) <= 1 else int(sys.argv[1])
+   #mes = datetime.datetime.now().month if len(sys.argv) <= 2 else int(sys.argv[2])
+   #nome_mes = datetime.date(year=ano, month=mes, day=1).strftime("%b")
+   #caminho_mes_ano = []
+   #caminho_mes_ano.append( caminho_inicial[0] + str(ano) + '\\' + str(nome_mes) + '\\' )
+   #print( ano, mes, nome_mes, caminho_mes_ano )
   
-   c, conn = iniciaBanco('bf_under_over_'+str(ano)+str(mes)+'.db')
+   #c, conn = iniciaBanco('bf_under_over_'+str(ano)+str(mes)+'.db')
+   c, conn = iniciaBanco(':memory:')
    lista_ids = [] # Para evitar duplicados no races
-   verificaDiretorios(caminhos_or=caminho_mes_ano)
+   verificaDiretorios()
    recriaIndices()
    removeDuplicatas()
    consolidaOdds()
    #consolidaAFs()
    fazLimpeza()
+   descarregaDaMemoria(conn)
