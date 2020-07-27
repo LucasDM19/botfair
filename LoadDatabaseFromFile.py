@@ -103,26 +103,27 @@ def verificaDiretorios(caminhos_or=caminho_inicial):
 def recriaIndices():
    global c, conn
    # Quando acaba tudo, cria (ou recria) os indices
-   c.execute("DROP INDEX IF EXISTS idx_races_EventId")
-   c.execute("CREATE INDEX idx_races_EventId ON races ( EventId ASC )")
-   c.execute("DROP INDEX IF EXISTS idx_runners_RaceId")
-   c.execute("CREATE INDEX idx_runners_RaceId ON runners ( RaceId )")
-   c.execute("DROP INDEX IF EXISTS idx_odds_RaceId")
-   c.execute("CREATE INDEX idx_odds_RaceId ON odds ( RaceId ASC )")
-   c.execute("DROP INDEX IF EXISTS idx_odds_RunnerId")
-   c.execute("CREATE INDEX idx_odds_RunnerId ON odds ( RunnerId )")
-   c.execute("DROP INDEX IF EXISTS idx_odds_RunnerId_PublishedTime")
-   c.execute("CREATE INDEX idx_odds_RunnerId_PublishedTime ON odds (RunnerId, PublishedTime)")
-   #c.execute("DROP INDEX IF EXISTS idx_odds_position_RaceId")
-   #c.execute("CREATE INDEX idx_odds_position_RaceId ON odds_position ( RaceId ASC )")
-   #c.execute("DROP INDEX IF EXISTS idx_odds_position_RunnerId")
-   #c.execute("CREATE INDEX idx_odds_position_RunnerId ON odds_position ( RunnerId )")
-   #c.execute("DROP INDEX IF EXISTS id_odds_position_MinutesUntillRace")
-   #c.execute("CREATE INDEX id_odds_position_MinutesUntillRace ON odds_position (MinutesUntillRace)")
-   c.execute("DROP INDEX IF EXISTS idx_races_EventId_MarketTime")
-   c.execute("CREATE INDEX idx_races_EventId_MarketTime ON races (EventId, MarketTime)")
-   c.execute("DROP INDEX IF EXISTS idx_runners_EventId")
-   c.execute("CREATE INDEX idx_runners_EventId ON runners (EventId )")
+   #c.execute("DROP INDEX IF EXISTS idx_races_EventId")
+   #c.execute("CREATE INDEX idx_races_EventId ON races ( EventId ASC )")
+   #c.execute("DROP INDEX IF EXISTS idx_runners_RaceId")
+   #c.execute("CREATE INDEX idx_runners_RaceId ON runners ( RaceId )")
+   #c.execute("DROP INDEX IF EXISTS idx_odds_RaceId")
+   #c.execute("CREATE INDEX idx_odds_RaceId ON odds ( RaceId ASC )")
+   #c.execute("DROP INDEX IF EXISTS idx_odds_RunnerId")
+   #c.execute("CREATE INDEX idx_odds_RunnerId ON odds ( RunnerId )")
+   #c.execute("DROP INDEX IF EXISTS idx_odds_RunnerId_PublishedTime")
+   #c.execute("CREATE INDEX idx_odds_RunnerId_PublishedTime ON odds (RunnerId, PublishedTime)")
+   #c.execute("DROP INDEX IF EXISTS idx_races_EventId_MarketTime")
+   #c.execute("CREATE INDEX idx_races_EventId_MarketTime ON races (EventId, MarketTime)")
+   #c.execute("DROP INDEX IF EXISTS idx_runners_EventId")
+   #c.execute("CREATE INDEX idx_runners_EventId ON runners (EventId )")
+   
+   c.execute("DROP INDEX IF EXISTS idx_odds_position_RaceId")
+   c.execute("CREATE INDEX idx_odds_position_RaceId ON odds_position ( RaceId ASC )")
+   c.execute("DROP INDEX IF EXISTS idx_odds_position_RunnerId")
+   c.execute("CREATE INDEX idx_odds_position_RunnerId ON odds_position ( RunnerId )")
+   c.execute("DROP INDEX IF EXISTS id_odds_position_MinutesUntillRace")
+   c.execute("CREATE INDEX id_odds_position_MinutesUntillRace ON odds_position (MinutesUntillRace)")
    conn.commit() # Agora sim grava tudo
    print("Índices recriados")
    
@@ -198,21 +199,20 @@ if __name__ == '__main__':
    nome_base_dados = 'bf_under_over_full.db'
    #c, conn = iniciaBanco('bf_under_over_'+str(ano)+str(mes)+'.db')
    #c, conn = iniciaBanco(':memory:')
-   c, conn = iniciaBanco('bf_under_over_full.db')
-   if( os.path.isfile(nome_arqs_pickle) ):
-      with open(nome_arqs_pickle, 'rb') as f:
-         dados_proc = pickle.load(f)
-      lista_ids = dados_proc['ids']
-      lista_diretorios = dados_proc['arqs']
-      verificaDiretorios(caminhos_or=lista_diretorios)
-   else:
-      dados_proc = {}
-      lista_ids = [] # Para evitar duplicados no races
-      dados_proc['ids'] = lista_ids
-      verificaDiretorios()
+   c, conn = iniciaBanco('C:\\Users\\Lucas\\Desktop\\bf_under_over_full.db')
+   #if( os.path.isfile(nome_arqs_pickle) ):
+   #   with open(nome_arqs_pickle, 'rb') as f:
+   #      dados_proc = pickle.load(f)
+   #   lista_ids = dados_proc['ids']
+   #   lista_diretorios = dados_proc['arqs']
+   #   verificaDiretorios(caminhos_or=lista_diretorios)
+   #else:
+   #   dados_proc = {}
+   #   lista_ids = [] # Para evitar duplicados no races
+   #   dados_proc['ids'] = lista_ids
+   #   verificaDiretorios()
+   #removeDuplicatas()
+   #consolidaOdds()
    recriaIndices()
-   removeDuplicatas()
-   consolidaOdds()
-   #consolidaAFs()
    fazLimpeza()
    #descarregaDaMemoria(conn, nome_base_dados)
