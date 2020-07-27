@@ -149,3 +149,5 @@ Hush.py
 *.pkl
 *.db
 *.db-journal
+*.zip
+*.csv
