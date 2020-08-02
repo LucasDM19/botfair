@@ -208,7 +208,10 @@ class BotFair():
       
       selections = ['"' + str(mercadoBF["marketId"])+'"' for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"]))]
       mercados = { mercadoBF["runners"][idx]["selectionId"] : mercadoBF["runners"][idx]["runnerName"]  for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"])) } #Qual codigo de mercado eh de qual tipo
-      mercadosM = { mercadoBF["marketName"] : mercadoBF["marketId"]  for mercadoBF in mercadosBF  } 
+      
+      #mercadosM = { mercadoBF["marketName"] : mercadoBF["marketId"]  for mercadoBF in mercadosBF  } 
+      mercadosM = { mercadoBF["runners"][idx]["selectionId"] : mercadoBF["marketId"]  for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"])) } #Qual codigo de mercado eh de qual tipo
+      
       selectionsM = { mercadoBF["runners"][idx]["runnerName"] : mercadoBF["runners"][idx]["selectionId"] for mercadoBF in mercadosBF for idx in range(len(mercadoBF["runners"])) } #Inverso do anterior
       
       filtro= '{ "marketIds": [' + ", ".join(selections) + '], "priceProjection": { "priceData": ["EX_BEST_OFFERS"], "virtualise": "true" } }'
@@ -223,7 +226,7 @@ class BotFair():
       odds = dc["odds"]
       merc_gols = [int(i.replace("Under ","").replace(".5 Goals","").replace("Over ","")) for i in odds.keys()]
       merc_gols = list(set(merc_gols))
-      print("merc_gols=", merc_gols)
+      #print("merc_gols=", merc_gols)
       dic_op_aposta = {} # Todas as opções válidas de apostar
       for uo in merc_gols: #range(1,8): #Percorrer todos os Under/Over que estiverem disponiveis
          #goalline = 0 #jogo_selecionado.AH_Away
@@ -274,7 +277,7 @@ class BotFair():
          #"plU_por_odds=(goal_diff<1.00||goal_diff>4.25||d_g>4 ?-1 :0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256);"
          if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 or (oddsU < 1.8 ) ): plU_por_odds = -1 #or oddsU > 2.25
          else: plU_por_odds = 0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256
-         print("Per_banca=",plU_por_odds, ",gol=", uo, ",jogo=", dc["nomeBF"], ",odd=", oddsU )
+         #print("Per_banca=",plU_por_odds, ",gol=", uo, ",jogo=", dc["nomeBF"], ",odd=", oddsU )
          if( plU_por_odds >= minimo_indice_para_apostar): 
             percent_da_banca = plU_por_odds * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta) :
@@ -286,7 +289,7 @@ class BotFair():
       
       dic_filtro = dict(filter(lambda elem: elem[1] > 0,dic_op_aposta.items()))
       if( len(dic_filtro) == 0 ):
-         print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
+         #print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
          return False, -1, 0 # Sem nada para fazer
       return True, max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
@@ -328,7 +331,7 @@ class BotFair():
          for p2 in range(len(partidasBF)):
             #print( "365=", partidasJson[p1], "BF=", partidasBF[p2], "ld=", self.estatisticas.LD(partidasJson[p1], partidasBF[p2]) ) 
             if( self.estatisticas.LD(partidasJson[p1], partidasBF[p2]) <= min_ld ):
-               print("PB=", p2, " encontrado!", partidasJson[p1], partidasBF[p2])
+               #print("PB=", p2, " encontrado!", partidasJson[p1], partidasBF[p2])
                min_ld = self.estatisticas.LD(partidasJson[p1], partidasBF[p2] )
                min_n = partidasBF[p2]
             #if( self.estatisticas.LD(p1, p2) <= 11 ):
@@ -340,24 +343,24 @@ class BotFair():
          
          devo_apostar, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
          nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
-         if( devo_apostar and nao_apostei_ainda ):
+         retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
+         saldo = int(retorno_saldo['availableToBetBalance'])
+         stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
+         #print("Saldo=", saldo, ",aposta=", stack_aposta)
+         if( devo_apostar and nao_apostei_ainda and stack_aposta >= 2.0 ):
             odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
-            print("Apostarei", percent_da_banca, " na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], " .")
-            #print( "Partida# ",idx,": ID=",self.jPartidas[idx]["event"]["id"], ", Nome=", self.jPartidas[idx]["event"]["name"], ", timezone=",self.jPartidas[idx]["event"]["timezone"], ", openDate=", self.jPartidas[idx]["event"]["openDate"], ", marketCount=", self.jPartidas[idx]["marketCount"] ) 
-            #print( [p for p in self.jPartidas ][0] )
-            retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
-            saldo = int(retorno_saldo['availableToBetBalance'])
-            stack_aposta = percent_da_banca*saldo
-            print("Saldo=", saldo, ",aposta=", stack_aposta)
-            x = 1/0
+            print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], " .")
             
-            marketId = [p['marketId'] for p in self.jPartidas  if p["event"]["name"] == dc["nomeBF"]][0] # Acho que funciona
-            filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+stack_aposta+'", "price": "'+ odd_selecionada +'", "persistenceType": "LAPSE" } } ] }'
-            #retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
-            bet_id = retorno_aposta['result']['instructionReports'][0]['betId'] # Salva o Id da aposta
-            data_aposta = retorno_aposta['result']['instructionReports'][0]['placedDate']
-            self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
-            salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
+            marketId = dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
+            filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
+            retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
+            if( retorno_aposta["status"] != "SUCCESS" or 'result' not in retorno_aposta): 
+               print("Erro:", retorno_aposta)
+            else:
+               bet_id = retorno_aposta['result']['instructionReports'][0]['betId'] # Salva o Id da aposta
+               data_aposta = retorno_aposta['result']['instructionReports'][0]['placedDate']
+               self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
+               salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
          #else: print("Nada para apostar por enquanto...")
          #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
          #self.salvaDadosBD(dc) #Ver se reativa 

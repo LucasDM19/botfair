@@ -19,6 +19,9 @@ class SoccerStats():
          url = urlopen( self.url )
          data = json.loads(url.read().decode('utf-8').replace("localStorage.stats=JSON.stringify(","").replace("}]);","}]") )
          return(data)
+      except json.decoder.JSONDecodeError:
+         #print("json provavelmente vazio!")
+         return {}
          
    #Levenshtein distance in a recursive way (https://www.python-course.eu/levenshtein_distance.php)
    def LD(self, s, t):
