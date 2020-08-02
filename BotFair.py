@@ -347,14 +347,15 @@ class BotFair():
          saldo = int(retorno_saldo['availableToBetBalance'])
          stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
          #print("Saldo=", saldo, ",aposta=", stack_aposta)
-         if( devo_apostar and nao_apostei_ainda and stack_aposta >= 2.0 ):
+         valor_minimo_aposta = 2.62 # Equivalente a 2 GBP
+         if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
             odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
             print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], " .")
             
             marketId = dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
             retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
-            if( retorno_aposta["status"] != "SUCCESS" or 'result' not in retorno_aposta): 
+            if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
                print("Erro:", retorno_aposta)
             else:
                bet_id = retorno_aposta['result']['instructionReports'][0]['betId'] # Salva o Id da aposta
