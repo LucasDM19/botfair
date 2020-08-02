@@ -51,15 +51,22 @@ class BetfairAPI():
       
    """
    Metodo generico, que apenas faz as chamadas da API usando rest. Os filtros dos detalhes aparecem apenas nos metodos especificos.
+   Existem outros endpoints, como o account.
    """
-   def APIRest(self, metodo = "listEventTypes/", json_req='{"filter":{ }}' ):
-      endpoint = "https://api.betfair.com/exchange/betting/rest/v1.0/"
+   def APIRest(self, metodo = "listEventTypes/", json_req='{"filter":{ }}', endpoint = "https://api.betfair.com/exchange/betting/rest/v1.0/" ):
       header = { 'X-Application' : self.api_key, 'X-Authentication' : self.sessionToken ,'content-type' : 'application/json' }
       url = endpoint + metodo
       response = requests.post(url, data=json_req, headers=header)
       #print (json.dumps(json.loads(response.text), indent=3))
       return json.loads(response.text) #Formato Json
-    
+   
+   """
+   Retorna o saldo da conta informada.
+   Note que o endpoin é diferente do padrão nesse caaso.
+   """
+   def obtemSaldoDaConta(self, json_req='{"filter":{ }}'):
+      return self.APIRest(metodo = "getAccountFunds/", json_req=json_req, endpoint='https://api.betfair.com/exchange/account/rest/v1.0/')
+      
    """
    Exibe todos os mercados (Soccer, Tennis, Golf, Cricket, Rugby Union, etc).
    Soccer eh o Id 1
