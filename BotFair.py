@@ -275,7 +275,7 @@ class BotFair():
          #pl_por_odds = 0.1389 + -0.0118 * s_g + -0.0037 * s_c + -0.0004 * s_da + -0.007  * s_s + -0.0324 * d_g + -0.0032 * d_c + -0.001  * d_da + 0.103  * goal_diff + 0.0311 * mod0 + 0.0359 * mod25 + 0.0231 * mod50 + -0.3799 * probUnder; 
          #pl_u= 0.0091 +     -0.0761 * s_g +     -0.0026 * s_c +     -0.0002 * s_da +     -0.0068 * s_s +     -0.0218 * s_r +     -0.0248 * d_g +     -0.0012 * d_da +     -0.0014 * d_s +      0.0746 * goalline +     -0.3222 * probU_diff +      0.0002 * mod0
          #"plU_por_odds=(goal_diff<1.00||goal_diff>4.25||d_g>4 ?-1 :0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256);"
-         if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 or (oddsU < 1.8 ) ): plU_por_odds = -1 #or oddsU > 2.25
+         if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 or (oddsU < 1.8 or oddsU > 2.25 ) ): plU_por_odds = -1 #or oddsU > 2.25
          else: plU_por_odds = 0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256
          #print("Per_banca=",plU_por_odds, ",gol=", uo, ",jogo=", dc["nomeBF"], ",odd=", oddsU )
          if( plU_por_odds >= minimo_indice_para_apostar): 
@@ -336,8 +336,8 @@ class BotFair():
                min_n = partidasBF[p2]
             #if( self.estatisticas.LD(p1, p2) <= 11 ):
             if( min_n != "" ):
-               #print("PJ=", p1, "PB=", min_n, "LD=", min_ld )
-               self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
+               #breakpoint()
+               self.dadosConsolidados.append( {"nomeBF" : self.jPartidas[p2]["event"]["name"], "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
       for dc in self.dadosConsolidados:
          dc["odds"], dc["selecoes"], dc["mercados"] = self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] ) # Falta essa informação
          
@@ -348,18 +348,20 @@ class BotFair():
          stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
          #print("Saldo=", saldo, ",aposta=", stack_aposta)
          valor_minimo_aposta = 2.62 # Equivalente a 2 GBP
+         breakpoint()  # Importante
          if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
             odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
-            print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], " .")
+            print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
             
             marketId = dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
             retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
+            print("Temp:", retorno_aposta)
             if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
                print("Erro:", retorno_aposta)
             else:
-               bet_id = retorno_aposta['result']['instructionReports'][0]['betId'] # Salva o Id da aposta
-               data_aposta = retorno_aposta['result']['instructionReports'][0]['placedDate']
+               bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+               data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
                self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
                salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
          #else: print("Nada para apostar por enquanto...")
