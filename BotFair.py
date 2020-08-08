@@ -346,7 +346,7 @@ class BotFair():
          retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
          saldo = int(retorno_saldo['availableToBetBalance'])
          stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
-         valor_minimo_aposta = 2.62 # Equivalente a 2 GBP
+         valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
          #if( uo != -1): breakpoint()  # Importante
          if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
             odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
@@ -355,7 +355,6 @@ class BotFair():
             marketId = dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
             filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
             retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
-            print("Temp:", retorno_aposta)
             if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
                print("Erro:", retorno_aposta)
             else:
