@@ -346,9 +346,8 @@ class BotFair():
          retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
          saldo = int(retorno_saldo['availableToBetBalance'])
          stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
-         #print("Saldo=", saldo, ",aposta=", stack_aposta)
          valor_minimo_aposta = 2.62 # Equivalente a 2 GBP
-         breakpoint()  # Importante
+         #if( uo != -1): breakpoint()  # Importante
          if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
             odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
             print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
