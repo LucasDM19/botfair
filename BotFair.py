@@ -329,15 +329,13 @@ class BotFair():
          min_ld = 9 #Filtro #9999 sem
          min_n = ""
          for p2 in range(len(partidasBF)):
-            #print( "365=", partidasJson[p1], "BF=", partidasBF[p2], "ld=", self.estatisticas.LD(partidasJson[p1], partidasBF[p2]) ) 
             if( self.estatisticas.LD(partidasJson[p1], partidasBF[p2]) <= min_ld ):
-               #print("PB=", p2, " encontrado!", partidasJson[p1], partidasBF[p2])
+               #breakpoint()
                min_ld = self.estatisticas.LD(partidasJson[p1], partidasBF[p2] )
                min_n = partidasBF[p2]
-            #if( self.estatisticas.LD(p1, p2) <= 11 ):
             if( min_n != "" ):
-               #breakpoint()
-               self.dadosConsolidados.append( {"nomeBF" : self.jPartidas[p2]["event"]["name"], "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
+               #breakpoint() #self.jPartidas[p2]["event"]["name"]
+               self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
       for dc in self.dadosConsolidados:
          dc["odds"], dc["selecoes"], dc["mercados"] = self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] ) # Falta essa informação
          
@@ -349,6 +347,7 @@ class BotFair():
          valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
          #if( uo != -1): breakpoint()  # Importante
          if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
+            breakpoint()
             odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
             print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
             
