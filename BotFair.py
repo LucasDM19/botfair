@@ -239,14 +239,19 @@ class BotFair():
          
          try:
             oddsU = odds["Under "+str(uo)+".5 Goals"]
-            probU = 1.0/odds["Under "+str(uo)+".5 Goals"]/(1.0/odds["Under "+str(uo)+".5 Goals"] + 1.0/odds["Over "+str(uo)+".5 Goals"])
-            probU_diff=abs(probU-0.5)
+            #probU = 1.0/odds["Under "+str(uo)+".5 Goals"]/(1.0/odds["Under "+str(uo)+".5 Goals"] + 1.0/odds["Over "+str(uo)+".5 Goals"])
+            #probU_diff=abs(probU-0.5)
             #print(probU, oddsU, uo)
          except KeyError: #Falta algum mercado
             pass
             #print("Sem mercado")
-            probU_diff=0
+            #probU_diff=0
             oddsU = 0
+         try:
+            oddsO = odds["Over "+str(uo)+".5 Goals"]
+         except KeyError: #Falta algum mercado
+            pass
+            oddsO = 0
          s_g=dc["Json"]['gH']+dc["Json"]['gA']
          s_c=dc["Json"]['cH']+dc["Json"]['cA']
          s_s=dc["Json"]['sH']+dc["Json"]['sA']
@@ -257,6 +262,7 @@ class BotFair():
          d_c=abs(dc["Json"]['cH']-dc["Json"]['cA'])
          d_s=abs(dc["Json"]['sH']-dc["Json"]['sA'])                                         
          d_da=abs(dc["Json"]['daH']+dc["Json"]['daA'])
+         handicap = dc["Json"]['handicap']
          
          goal_diff=goalline-s_g
          #print("Teste Diff=", goal_diff)
@@ -273,21 +279,37 @@ class BotFair():
          #if( "Women" in dc["nomeBF"] 
          W = 0 #W=Number(home.includes('Women')) // Adaptar isso
          
-         #pl_por_odds = 0.1389 + -0.0118 * s_g + -0.0037 * s_c + -0.0004 * s_da + -0.007  * s_s + -0.0324 * d_g + -0.0032 * d_c + -0.001  * d_da + 0.103  * goal_diff + 0.0311 * mod0 + 0.0359 * mod25 + 0.0231 * mod50 + -0.3799 * probUnder; 
-         #pl_u= 0.0091 +     -0.0761 * s_g +     -0.0026 * s_c +     -0.0002 * s_da +     -0.0068 * s_s +     -0.0218 * s_r +     -0.0248 * d_g +     -0.0012 * d_da +     -0.0014 * d_s +      0.0746 * goalline +     -0.3222 * probU_diff +      0.0002 * mod0
-         #"plU_por_odds=(goal_diff<1.00||goal_diff>4.25||d_g>4 ?-1 :0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256);"
-         if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 or (oddsU < 1.8 or oddsU > 2.25 ) ): plU_por_odds = -1 #or oddsU > 2.25
-         else: plU_por_odds = 0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256
-         #print("Per_banca=",plU_por_odds, ",gol=", uo, ",jogo=", dc["nomeBF"], ",odd=", oddsU )
-         if( plU_por_odds >= minimo_indice_para_apostar): 
-            percent_da_banca = plU_por_odds * percentual_de_kelly
-            if (percent_da_banca >  maximo_da_banca_por_aposta) :
-               percent_da_banca=maximo_da_banca_por_aposta
-            #return True, uo, percent_da_banca
+         #Equacao da Bet365
+         #if( goal_diff < 1.00 or goal_diff > 4.25 or d_g>4 or (oddsU < 1.8 or oddsU > 2.25 ) ): plU_por_odds = -1 #or oddsU > 2.25
+         #else: plU_por_odds = 0.0043995738960802555 * s_g +-0.010405398905277252 * s_c +-0.0003965592562558247 * s_da +-0.028474957515031863 * s_s +-0.06218665838241577 * d_g +-0.0015331107511449215 * d_da +0.1922848874872381 * goal_diff +0.16835627605647394 * oddsU +0.07048862983366744 * L1 +0.23551936088359587 * L2 +-0.30258931180186993 * L3 +-0.031020960578842485 * X +0.0678747147321701 * W +-0.46591539790406256
+         
+         # Criterios Bot da Bet365
+         #if( plU_por_odds >= minimo_indice_para_apostar): 
+         #   percent_da_banca = plU_por_odds * percentual_de_kelly
+         #   if (percent_da_banca >  maximo_da_banca_por_aposta) :
+         #      percent_da_banca=maximo_da_banca_por_aposta
+         #   #return True, uo, percent_da_banca
+         #   dic_op_aposta[uo] = percent_da_banca
+         ##else:
+         #   #return False, -1, 0
+         
+         #Equacao esepcifica Betfair
+         d_goal_bf = uo-s_g
+         L1=log(1+d_goal_bf)
+         M1=math.log(1+oddsU)
+         d_hand_tc=abs(handicap)
+         kelly_OVER=0.0196131*s_c+0.0098857*s_s+-0.0247524*s_r+-0.016744*d_c+0.1128363*d_hand_tc+-0.251764*d_goal_bf+-2.3750849*oddsU+-0.5023665*L1+7.1751788*M1+-2.6701679
+         kelly_UNDER=-0.004704*s_s+0.0105575*s_r+-0.0289218*d_g+-0.0007306*d_da+0.0017628*d_s+-0.1907982*d_goal_bf+-2.0169732*oddsO+0.0169774*W+1.2183641*L1+5.8118938*M1+-3.1709947
+         
+         #eh so apostar de kelly >1% , e apostar metade
+         minimo_kelly = 0.01
+         percentual_de_kelly = 0.5 # apostar metade
+         melhor_kelly = max(kelly_OVER, kelly_UNDER) # Escolho o mais alto
+         if( melhor_kelly > minimo_kelly ):
+            percent_da_banca = melhor_kelly * percentual_de_kelly
+            if (percent_da_banca >  maximo_da_banca_por_aposta): percent_da_banca=maximo_da_banca_por_aposta
             dic_op_aposta[uo] = percent_da_banca
-         #else:
-            #return False, -1, 0
-      
+               
       dic_filtro = dict(filter(lambda elem: elem[1] > 0,dic_op_aposta.items()))
       if( len(dic_filtro) == 0 ):
          #print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
