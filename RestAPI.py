@@ -114,6 +114,13 @@ class BetfairAPI():
       return self.APIRest(metodo = "placeOrders/", json_req=json_req)
    
    """
+   Cancela uma aposta efetuada.
+   Precisa do id da aposta.
+   """
+   def cancelaAposta(self, json_req='{"filter":{ }}'):
+      return self.APIRest(metodo = "cancelOrders/", json_req=json_req)
+   
+   """
    Consulta todas as apostas correspondidas. 
    Retorna um Json.
    """

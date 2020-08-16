@@ -374,7 +374,7 @@ class BotFair():
                nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
                retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
                saldo = int(retorno_saldo['availableToBetBalance'])
-               stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
+               stack_aposta = round(percent_da_banca*saldo*0.125,2) # Olha o 0.5 de precaução aí
                #stack_aposta = 5.0 # Teste
                valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
                
@@ -393,7 +393,10 @@ class BotFair():
                      if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
                         print("Erro:", retorno_aposta)
                      elif( retorno_aposta['instructionReports'][0]['sizeMatched'] == 0.0 ) :
-                        print("Odds alteraram") #Exemplo: {'status': 'SUCCESS', 'marketId': '1.172153457', 'instructionReports': [{'status': 'SUCCESS', 'instruction': {'selectionId': 47972, 'handicap': 0.0, 'limitOrder': {'size': 5.0, 'price': 4.3, 'persistenceType': 'LAPSE'}, 'orderType': 'LIMIT', 'side': 'BACK'}, 'betId': '208573543824', 'placedDate': '2020-08-16T17:19:13.000Z', 'averagePriceMatched': 0.0, 'sizeMatched': 0.0, 'orderStatus': 'EXECUTABLE'}]}
+                        print("Aposta não correspondida") #Exemplo: {'status': 'SUCCESS', 'marketId': '1.172153457', 'instructionReports': [{'status': 'SUCCESS', 'instruction': {'selectionId': 47972, 'handicap': 0.0, 'limitOrder': {'size': 5.0, 'price': 4.3, 'persistenceType': 'LAPSE'}, 'orderType': 'LIMIT', 'side': 'BACK'}, 'betId': '208573543824', 'placedDate': '2020-08-16T17:19:13.000Z', 'averagePriceMatched': 0.0, 'sizeMatched': 0.0, 'orderStatus': 'EXECUTABLE'}]}
+                        bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+                        filtro='{"betId" : '+str(bet_id)+' }'
+                        retorno_cancelamento = self.api.cancelaAposta(json_req=filtro) # Exempo: {'status': 'SUCCESS', 'instructionReports': []}
                      else:
                         bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
                         data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
