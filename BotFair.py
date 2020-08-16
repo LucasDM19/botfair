@@ -295,11 +295,13 @@ class BotFair():
          
          #Equacao esepcifica Betfair
          d_goal_bf = uo-s_g
-         L1=log(1+d_goal_bf)
+         L1=math.log(1+abs(d_goal_bf))
          M1=math.log(1+oddsU)
          d_hand_tc=abs(handicap)
+         if( (oddsO < 1.8 or oddsO > 2.25 ) ): kelly_OVER = -1 
          kelly_OVER=0.0196131*s_c+0.0098857*s_s+-0.0247524*s_r+-0.016744*d_c+0.1128363*d_hand_tc+-0.251764*d_goal_bf+-2.3750849*oddsU+-0.5023665*L1+7.1751788*M1+-2.6701679
-         kelly_UNDER=-0.004704*s_s+0.0105575*s_r+-0.0289218*d_g+-0.0007306*d_da+0.0017628*d_s+-0.1907982*d_goal_bf+-2.0169732*oddsO+0.0169774*W+1.2183641*L1+5.8118938*M1+-3.1709947
+         if( (oddsU < 1.8 or oddsU > 2.25 ) ): kelly_UNDER = -1 
+         else: kelly_UNDER=-0.004704*s_s+0.0105575*s_r+-0.0289218*d_g+-0.0007306*d_da+0.0017628*d_s+-0.1907982*d_goal_bf+-2.0169732*oddsO+0.0169774*W+1.2183641*L1+5.8118938*M1+-3.1709947
          
          #eh so apostar de kelly >1% , e apostar metade
          minimo_kelly = 0.01
@@ -308,7 +310,7 @@ class BotFair():
          if( melhor_kelly > minimo_kelly ):
             percent_da_banca = melhor_kelly * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta): percent_da_banca=maximo_da_banca_por_aposta
-            dic_op_aposta[uo] = percent_da_banca
+            dic_op_aposta[uo] = percent_da_banca #/100 # Estava muito alto
                
       dic_filtro = dict(filter(lambda elem: elem[1] > 0,dic_op_aposta.items()))
       if( len(dic_filtro) == 0 ):
@@ -345,20 +347,21 @@ class BotFair():
       jstat = self.estatisticas.getStats() #Atualizo o Json
       partidasJson = [ jstat[x]["home"]+" v "+jstat[x]["away"] for x in range(len(jstat)) ] #Partidas no formato MandanteXVisitante do Json
       self.obtemListaPartidasAndamento(horas=0, minutos=45) # Apenas final do primeiro tempo
-      partidasBF = [self.jPartidas[idx]["event"]["name"] for idx in range(len(self.jPartidas))]
-      #print("BF tem=", len(self.jPartidas), "Bet365 tem=", len(partidasJson) )
+      #partidasBF = list(set( [self.jPartidas[idx]["event"]["name"] for idx in range(len(self.jPartidas))] )) # Valores unicos
+      #Exemplo: {'marketId': '1.171944455', 'marketName': 'Over/Under 1.5 Goals', 'marketStartTime': '2020-08-16T11:30:00.000Z', 'totalMatched': 16989.794560000002, 'runners': [{'selectionId': 1221385, 'runnerName': 'Under 1.5 Goals', 'handicap': 0.0, 'sortPriority': 1}, {'selectionId': 1221386, 'runnerName': 'Over 1.5 Goals', 'handicap': 0.0, 'sortPriority': 2}], 'event': {'id': '29949215', 'name': 'Cercle Brugge v Antwerp', 'countryCode': 'BE', 'timezone': 'GMT', 'openDate': '2020-08-16T11:30:00.000Z'}}
+      partidasBF = [self.jPartidas[idx] for idx in range(len(self.jPartidas)) if 'Over/Under' in self.jPartidas[idx]['marketName'] ] # Filtrei
       self.dadosConsolidados = [] #Lista que une ambos as fontes
       for p1 in range(len(partidasJson)):
          min_ld = 9 #Filtro #9999 sem
          min_n = ""
          for p2 in range(len(partidasBF)):
-            if( self.estatisticas.LD(partidasJson[p1], partidasBF[p2]) <= min_ld ):
+            if( self.estatisticas.LD(partidasJson[p1], partidasBF[p2]["event"]["name"] ) <= min_ld ):
                #breakpoint()
-               min_ld = self.estatisticas.LD(partidasJson[p1], partidasBF[p2] )
-               min_n = partidasBF[p2]
+               min_ld = self.estatisticas.LD(partidasJson[p1], partidasBF[p2]["event"]["name"] )
+               min_n =  partidasBF[p2]["event"]["name"]
             if( min_n != "" ):
                #breakpoint() #self.jPartidas[p2]["event"]["name"]
-               self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : self.jPartidas[p2], "Json" : jstat[p1],} )
+               self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : partidasBF[p2], "Json" : jstat[p1],} )
       for dc in self.dadosConsolidados:
          dc["odds"], dc["selecoes"], dc["mercados"] = self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] ) # Falta essa informação
          
