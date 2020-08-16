@@ -361,35 +361,38 @@ class BotFair():
                min_n =  partidasBF[p2]["event"]["name"]
             if( min_n != "" ):
                #breakpoint() #self.jPartidas[p2]["event"]["name"]
-               self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : partidasBF[p2], "Json" : jstat[p1],} )
-      for dc in self.dadosConsolidados:
-         dc["odds"], dc["selecoes"], dc["mercados"] = self.getOddsFromPartida(idBF = dc["BetFair"]["event"]["id"] ) # Falta essa informação
-         
-         devo_apostar, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
-         nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
-         retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
-         saldo = int(retorno_saldo['availableToBetBalance'])
-         stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
-         valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
-         #if( uo != -1): breakpoint()  # Importante
-         if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
-            breakpoint()
-            odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
-            print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
-            
-            marketId = dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
-            filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] ) + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
-            retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
-            if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
-               print("Erro:", retorno_aposta)
-            else:
-               bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
-               data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
-               self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
-               salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
-         #else: print("Nada para apostar por enquanto...")
-         #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
-         #self.salvaDadosBD(dc) #Ver se reativa 
+               dc_odds, dc_selecoes, dc_mercados = self.getOddsFromPartida(idBF = partidasBF[p2]["event"]["id"] ) # Falta essa informação
+               dc = {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : partidasBF[p2], "Json" : jstat[p1], "odds": dc_odds, "selecoes": dc_selecoes, "mercados": dc_mercados, }
+               #self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : partidasBF[p2], "Json" : jstat[p1], "odds": dc_odds, "selecoes": dc_selecoes, "mercados": dc_mercados, } )
+               
+            #for dc in self.dadosConsolidados:
+               devo_apostar, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
+               nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
+               retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
+               saldo = int(retorno_saldo['availableToBetBalance'])
+               stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
+               valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
+               #if( uo != -1): breakpoint()  # Importante
+               if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
+                  breakpoint()
+                  odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
+                  print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
+                  
+                  #marketId = dc["BetFair"]["marketId"] #dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
+                  marketId = [self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ][0]
+                  selectionId = str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] )
+                  filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + selectionId + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
+                  retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
+                  if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
+                     print("Erro:", retorno_aposta)
+                  else:
+                     bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+                     data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
+                     self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
+                     salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
+               #else: print("Nada para apostar por enquanto...")
+               #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
+               #self.salvaDadosBD(dc) #Ver se reativa 
       
          
 if __name__ == "__main__":
