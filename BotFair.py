@@ -317,7 +317,7 @@ class BotFair():
       if( len(dic_filtro) == 0 ):
          #print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
          return False, "nada", -1, 0 # Sem nada para fazer
-      breakpoint()
+      #breakpoint()
       return True, tipo_aposta, max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
    #Consulta a lista de apostas em andamento
@@ -354,7 +354,7 @@ class BotFair():
       partidasBF = [self.jPartidas[idx] for idx in range(len(self.jPartidas)) if 'Over/Under' in self.jPartidas[idx]['marketName'] ] # Filtrei
       self.dadosConsolidados = [] #Lista que une ambos as fontes
       for p1 in range(len(partidasJson)):
-         min_ld = 9 #Filtro #9999 sem
+         min_ld = 7 #Jaro v SJK 2 ( Hodd v Skeid ) deu 8
          min_n = ""
          for p2 in range(len(partidasBF)):
             if( self.estatisticas.LD(partidasJson[p1], partidasBF[p2]["event"]["name"] ) <= min_ld ):
@@ -380,21 +380,21 @@ class BotFair():
                if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
                   #breakpoint()
                   odd_selecionada = dc["odds"][tipo_aposta+" "+str(uo)+".5 Goals"] #Under ou Over
-                  print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
-                  
-                  #marketId = dc["BetFair"]["marketId"] #dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
-                  marketId = [self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ][0]
-                  selectionId = str(dc["selecoes"][tipo_aposta+" "+str(uo)+".5 Goals"] )
-                  filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + selectionId + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
-                  breakpoint()
-                  retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
-                  if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
-                     print("Erro:", retorno_aposta)
-                  else:
-                     bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
-                     data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
-                     self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
-                     salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
+                  if len([self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ]) > 0 :
+                     marketId = [self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ][0]
+                     print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
+                     
+                     selectionId = str(dc["selecoes"][tipo_aposta+" "+str(uo)+".5 Goals"] )
+                     filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + selectionId + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
+                     #breakpoint()
+                     retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
+                     if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
+                        print("Erro:", retorno_aposta)
+                     else:
+                        bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+                        data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
+                        self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
+                        salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
                #else: print("Nada para apostar por enquanto...")
                #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
                #self.salvaDadosBD(dc) #Ver se reativa 
