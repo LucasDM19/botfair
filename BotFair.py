@@ -390,6 +390,8 @@ class BotFair():
                      retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
                      if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
                         print("Erro:", retorno_aposta)
+                     elif( retorno_aposta['instructionReports'][0]['sizeMatched'] == 0.0 ) :
+                        print("Odds alteraram") #Exemplo: {'status': 'SUCCESS', 'marketId': '1.172153457', 'instructionReports': [{'status': 'SUCCESS', 'instruction': {'selectionId': 47972, 'handicap': 0.0, 'limitOrder': {'size': 5.0, 'price': 4.3, 'persistenceType': 'LAPSE'}, 'orderType': 'LIMIT', 'side': 'BACK'}, 'betId': '208573543824', 'placedDate': '2020-08-16T17:19:13.000Z', 'averagePriceMatched': 0.0, 'sizeMatched': 0.0, 'orderStatus': 'EXECUTABLE'}]}
                      else:
                         bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
                         data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
