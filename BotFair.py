@@ -375,7 +375,7 @@ class BotFair():
                retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
                saldo = int(retorno_saldo['availableToBetBalance'])
                stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
-               stack_aposta = 5.0 # Teste
+               #stack_aposta = 5.0 # Teste
                valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
                
                #if( uo != -1): breakpoint()  # Importante
