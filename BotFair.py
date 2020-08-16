@@ -229,13 +229,14 @@ class BotFair():
       merc_gols = list(set(merc_gols))
       #print("merc_gols=", merc_gols)
       dic_op_aposta = {} # Todas as opções válidas de apostar
+      dic_tipo_aposta = {} # Qual fica melhor entre Under ou Over
       for uo in merc_gols: #range(1,8): #Percorrer todos os Under/Over que estiverem disponiveis
          #goalline = 0 #jogo_selecionado.AH_Away
          goalline = uo + 0.5 # Parece que goalline eh o total de gols da aposta
          COMISSAO_BETFAIR = 0.05
          minimo_indice_para_apostar = 0.02 + COMISSAO_BETFAIR
          percentual_de_kelly = 0.2
-         maximo_da_banca_por_aposta = 15
+         maximo_da_banca_por_aposta = 0.15
          
          try:
             oddsU = odds["Under "+str(uo)+".5 Goals"]
@@ -312,13 +313,14 @@ class BotFair():
             percent_da_banca = melhor_kelly * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta): percent_da_banca=maximo_da_banca_por_aposta
             dic_op_aposta[uo] = percent_da_banca #/100 # Estava muito alto
+            dic_tipo_aposta[uo] = tipo_aposta
                
       dic_filtro = dict(filter(lambda elem: elem[1] > 0,dic_op_aposta.items()))
       if( len(dic_filtro) == 0 ):
          #print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
          return False, "nada", -1, 0 # Sem nada para fazer
       #breakpoint()
-      return True, tipo_aposta, max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
+      return True, dic_tipo_aposta[max(dic_filtro, key=dic_filtro.get)], max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
    #Consulta a lista de apostas em andamento
    def verificaSeJaApostouOuNao(self, nome_jogo_BF=None ):
