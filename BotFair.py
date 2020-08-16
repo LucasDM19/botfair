@@ -298,15 +298,16 @@ class BotFair():
          L1=math.log(1+abs(d_goal_bf))
          M1=math.log(1+oddsU)
          d_hand_tc=abs(handicap)
-         if( (oddsO < 1.8 or oddsO > 2.25 ) ): kelly_OVER = -1 
+         if( goal_diff < 1.00 or goal_diff > 4.25 and (oddsO < 1.8 or oddsO > 2.25 ) ): kelly_OVER = -1 
          kelly_OVER=0.0196131*s_c+0.0098857*s_s+-0.0247524*s_r+-0.016744*d_c+0.1128363*d_hand_tc+-0.251764*d_goal_bf+-2.3750849*oddsU+-0.5023665*L1+7.1751788*M1+-2.6701679
-         if( (oddsU < 1.8 or oddsU > 2.25 ) ): kelly_UNDER = -1 
+         if( goal_diff < 1.00 or goal_diff > 4.25 and (oddsU < 1.8 or oddsU > 2.25 ) ): kelly_UNDER = -1 
          else: kelly_UNDER=-0.004704*s_s+0.0105575*s_r+-0.0289218*d_g+-0.0007306*d_da+0.0017628*d_s+-0.1907982*d_goal_bf+-2.0169732*oddsO+0.0169774*W+1.2183641*L1+5.8118938*M1+-3.1709947
          
          #eh so apostar de kelly >1% , e apostar metade
          minimo_kelly = 0.01
          percentual_de_kelly = 0.5 # apostar metade
          melhor_kelly = max(kelly_OVER, kelly_UNDER) # Escolho o mais alto
+         tipo_aposta = "Under" if kelly_UNDER >= kelly_OVER else "Over"
          if( melhor_kelly > minimo_kelly ):
             percent_da_banca = melhor_kelly * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta): percent_da_banca=maximo_da_banca_por_aposta
@@ -315,8 +316,9 @@ class BotFair():
       dic_filtro = dict(filter(lambda elem: elem[1] > 0,dic_op_aposta.items()))
       if( len(dic_filtro) == 0 ):
          #print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
-         return False, -1, 0 # Sem nada para fazer
-      return True, max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
+         return False, "nada", -1, 0 # Sem nada para fazer
+      breakpoint()
+      return True, tipo_aposta, max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
    #Consulta a lista de apostas em andamento
    def verificaSeJaApostouOuNao(self, nome_jogo_BF=None ):
@@ -366,22 +368,25 @@ class BotFair():
                #self.dadosConsolidados.append( {"nomeBF" : min_n, "nomeJ" : partidasJson[p1], "BetFair" : partidasBF[p2], "Json" : jstat[p1], "odds": dc_odds, "selecoes": dc_selecoes, "mercados": dc_mercados, } )
                
             #for dc in self.dadosConsolidados:
-               devo_apostar, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
+               devo_apostar, tipo_aposta, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
                nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
                retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
                saldo = int(retorno_saldo['availableToBetBalance'])
                stack_aposta = round(percent_da_banca*saldo*0.25,2) # Olha o 0.5 de precaução aí
+               stack_aposta = 5.0 # Teste
                valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
+               
                #if( uo != -1): breakpoint()  # Importante
                if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
-                  breakpoint()
-                  odd_selecionada = dc["odds"]["Under "+str(uo)+".5 Goals"]
-                  print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", "Under "+str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
+                  #breakpoint()
+                  odd_selecionada = dc["odds"][tipo_aposta+" "+str(uo)+".5 Goals"] #Under ou Over
+                  print("Apostarei", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", " .")
                   
                   #marketId = dc["BetFair"]["marketId"] #dc["mercados"][dc["selecoes"]["Under "+str(uo)+".5 Goals"]] #SelectionId é a chave, retorna MarketId
                   marketId = [self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ][0]
-                  selectionId = str(dc["selecoes"]["Under "+str(uo)+".5 Goals"] )
+                  selectionId = str(dc["selecoes"][tipo_aposta+" "+str(uo)+".5 Goals"] )
                   filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + selectionId + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
+                  breakpoint()
                   retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
                   if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
                      print("Erro:", retorno_aposta)
