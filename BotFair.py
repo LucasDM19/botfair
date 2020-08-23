@@ -404,6 +404,7 @@ class BotFair():
                         data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
                         self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
                         salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
+                        self.dic_apostas = {j:i for j,i in self.dic_apostas.items() if datetime.strptime(self.dic_apostas[j]['data'], '%Y-%m-%dT%H:%M:%S.%fZ') >= (datetime.now() - timedelta(days=2)) } # Deixo apenas as partidas mais recentes na lista
                         print("Aposta", percent_da_banca, ",stack=", stack_aposta, str(round(percent_da_banca*saldo,2)), ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
                #else: print("Nada para apostar por enquanto...")
                #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
