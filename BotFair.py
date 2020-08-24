@@ -6,6 +6,8 @@ from Stats import SoccerStats
 from RestAPI import BetfairAPI
 from argparse import ArgumentParser
 import os, pickle
+from datetime import datetime
+from datetime import timedelta
 
 """
 Classe que determina o comportamento do Bot. Nao importa muito se tem base de dados, se acessa Json, ou se usa alguma API.
