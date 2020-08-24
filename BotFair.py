@@ -237,7 +237,6 @@ class BotFair():
          goalline = uo + 0.5 # Parece que goalline eh o total de gols da aposta
          COMISSAO_BETFAIR = 0.05
          minimo_indice_para_apostar = 0.02 + COMISSAO_BETFAIR
-         percentual_de_kelly = 0.2
          maximo_da_banca_por_aposta = 0.10 #0.10 ideal
          
          try:
@@ -309,7 +308,7 @@ class BotFair():
          
          #eh so apostar de kelly >1% , e apostar metade
          minimo_kelly = 0.01
-         percentual_de_kelly = 0.5 # apostar metade
+         percentual_de_kelly = 0.25 # apostar metade
          melhor_kelly = max(kelly_OVER, kelly_UNDER) # Escolho o mais alto
          tipo_aposta = "Under" if kelly_UNDER >= kelly_OVER else "Over"
          if( melhor_kelly > minimo_kelly ):
@@ -407,7 +406,7 @@ class BotFair():
                         self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
                         salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
                         self.dic_apostas = {j:i for j,i in self.dic_apostas.items() if datetime.strptime(self.dic_apostas[j]['data'], '%Y-%m-%dT%H:%M:%S.%fZ') >= (datetime.now() - timedelta(days=2)) } # Deixo apenas as partidas mais recentes na lista
-                        print("Aposta", percent_da_banca, ",stack=", stack_aposta, str(round(percent_da_banca*saldo,2)), ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
+                        print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
                #else: print("Nada para apostar por enquanto...")
                #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
                #self.salvaDadosBD(dc) #Ver se reativa 
