@@ -311,7 +311,7 @@ class BotFair():
          percentual_de_kelly = 0.25 # apostar metade
          melhor_kelly = max(kelly_OVER, kelly_UNDER) # Escolho o mais alto
          tipo_aposta = "Under" if kelly_UNDER >= kelly_OVER else "Over"
-         print("Avaliando:", dc["nomeBF"], ", diff=", goal_diff, ",oddsO=",oddsO, ",oddsU=", oddsU,",Json=", dc["Json"], kelly_OVER, kelly_UNDER, percent_da_banca, melhor_kelly, tipo_aposta, uo )
+         print("Avaliando:", dc["nomeBF"], ", diff=", goal_diff, ",oddsO=",oddsO, ",oddsU=", oddsU,",Json=", dc["Json"], ", Kelly_OVER=", kelly_OVER, ", Kelly_UNDER=", kelly_UNDER, "%banca=", melhor_kelly * percentual_de_kelly, ",melhor=", melhor_kelly, ",tipo=", tipo_aposta, ",UO=", uo )
          if( melhor_kelly > minimo_kelly ):
             percent_da_banca = melhor_kelly * percentual_de_kelly
             if (percent_da_banca >  maximo_da_banca_por_aposta): percent_da_banca=maximo_da_banca_por_aposta
