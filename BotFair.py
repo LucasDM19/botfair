@@ -275,9 +275,9 @@ class BotFair():
          import math 
          X=s_g/math.log(s_s+0.75)
          #Y=Math.pow(s_s,1.5)
-         L1=math.log(1+s_s)
-         L2=math.log(1+L1)
-         L3=math.log(1+L2)
+         #L1=math.log(1+s_s)
+         #L2=math.log(1+L1)
+         #L3=math.log(1+L2)
          #W = 0 #W=Number(home.includes('Women')) // Adaptar isso
          W = 0 if "Women" not in dc["nomeBF"] else 1
          
@@ -298,13 +298,14 @@ class BotFair():
          #Equacao esepcifica Betfair
          d_goal_bf = uo-s_g
          L1=math.log(1+abs(d_goal_bf))
-         M1=math.log(1+oddsU)
+         UM1=math.log(1+oddsU)
+         OM1=math.log(1+oddsO)
          d_hand_tc=abs(handicap)
          #breakpoint()
          if( (goal_diff < 1.00 or goal_diff > 4.25) or (oddsO <= 1.1 or oddsO > 2.1 ) ): kelly_OVER = -1 
-         else: kelly_OVER=0.0196131*s_c+0.0098857*s_s+-0.0247524*s_r+-0.016744*d_c+0.1128363*d_hand_tc+-0.251764*d_goal_bf+-2.3750849*oddsU+-0.5023665*L1+7.1751788*M1+-2.6701679
+         else: kelly_OVER=0.0196131*s_c+0.0098857*s_s+-0.0247524*s_r+-0.016744*d_c+0.1128363*d_hand_tc+-0.251764*d_goal_bf+-2.3750849*oddsU+-0.5023665*L1+7.1751788*OM1+-2.6701679
          if( (goal_diff < 1.00 or goal_diff > 4.25) or (oddsU <= 1.1 or oddsU > 2.1 ) ): kelly_UNDER = -1 
-         else: kelly_UNDER=-0.004704*s_s+0.0105575*s_r+-0.0289218*d_g+-0.0007306*d_da+0.0017628*d_s+-0.1907982*d_goal_bf+-2.0169732*oddsO+0.0169774*W+1.2183641*L1+5.8118938*M1+-3.1709947
+         else: kelly_UNDER=-0.004704*s_s+0.0105575*s_r+-0.0289218*d_g+-0.0007306*d_da+0.0017628*d_s+-0.1907982*d_goal_bf+-2.0169732*oddsO+0.0169774*W+1.2183641*L1+5.8118938*UM1+-3.1709947
          
          #eh so apostar de kelly >1% , e apostar metade
          minimo_kelly = 0.01
@@ -322,7 +323,7 @@ class BotFair():
       if( len(dic_filtro) == 0 ):
          #print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
          return False, "nada", -1, 0 # Sem nada para fazer
-      #breakpoint()
+      if( max(dic_filtro, key=dic_filtro.get) > 0.10 ): breakpoint()
       return True, dic_tipo_aposta[max(dic_filtro, key=dic_filtro.get)], max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
    #Consulta a lista de apostas em andamento
