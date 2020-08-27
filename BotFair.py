@@ -237,7 +237,7 @@ class BotFair():
          goalline = uo + 0.5 # Parece que goalline eh o total de gols da aposta
          COMISSAO_BETFAIR = 0.05
          minimo_indice_para_apostar = 0.02 + COMISSAO_BETFAIR
-         maximo_da_banca_por_aposta = 0.10 #0.10 ideal
+         maximo_da_banca_por_aposta = 0.05 #0.10 ideal, 0.05 CAUTELA
          
          try:
             oddsU = odds["Under "+str(uo)+".5 Goals"]
@@ -393,21 +393,21 @@ class BotFair():
                      selectionId = str(dc["selecoes"][tipo_aposta+" "+str(uo)+".5 Goals"] )
                      filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + selectionId + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
                      #breakpoint()
-                     # retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
-                     # if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
-                        # print("Erro:", retorno_aposta)
-                     # elif( retorno_aposta['instructionReports'][0]['sizeMatched'] == 0.0 ) :
-                        # print("Aposta não correspondida") #Exemplo: {'status': 'SUCCESS', 'marketId': '1.172153457', 'instructionReports': [{'status': 'SUCCESS', 'instruction': {'selectionId': 47972, 'handicap': 0.0, 'limitOrder': {'size': 5.0, 'price': 4.3, 'persistenceType': 'LAPSE'}, 'orderType': 'LIMIT', 'side': 'BACK'}, 'betId': '208573543824', 'placedDate': '2020-08-16T17:19:13.000Z', 'averagePriceMatched': 0.0, 'sizeMatched': 0.0, 'orderStatus': 'EXECUTABLE'}]}
-                        # bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
-                        # filtro='{"betId" : '+str(bet_id)+' }'
-                        # retorno_cancelamento = self.api.cancelaAposta(json_req=filtro) # Exempo: {'status': 'SUCCESS', 'instructionReports': []}
-                     # else:
-                        # bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
-                        # data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
-                        # self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
-                        # salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
-                        # self.dic_apostas = {j:i for j,i in self.dic_apostas.items() if datetime.strptime(self.dic_apostas[j]['data'], '%Y-%m-%dT%H:%M:%S.%fZ') >= (datetime.now() - timedelta(days=2)) } # Deixo apenas as partidas mais recentes na lista
-                        # print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
+                     retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
+                     if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
+                        print("Erro:", retorno_aposta)
+                     elif( retorno_aposta['instructionReports'][0]['sizeMatched'] == 0.0 ) :
+                        print("Aposta não correspondida") #Exemplo: {'status': 'SUCCESS', 'marketId': '1.172153457', 'instructionReports': [{'status': 'SUCCESS', 'instruction': {'selectionId': 47972, 'handicap': 0.0, 'limitOrder': {'size': 5.0, 'price': 4.3, 'persistenceType': 'LAPSE'}, 'orderType': 'LIMIT', 'side': 'BACK'}, 'betId': '208573543824', 'placedDate': '2020-08-16T17:19:13.000Z', 'averagePriceMatched': 0.0, 'sizeMatched': 0.0, 'orderStatus': 'EXECUTABLE'}]}
+                        bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+                        filtro='{"betId" : '+str(bet_id)+' }'
+                        retorno_cancelamento = self.api.cancelaAposta(json_req=filtro) # Exempo: {'status': 'SUCCESS', 'instructionReports': []}
+                     else:
+                        bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+                        data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
+                        self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
+                        salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
+                        self.dic_apostas = {j:i for j,i in self.dic_apostas.items() if datetime.strptime(self.dic_apostas[j]['data'], '%Y-%m-%dT%H:%M:%S.%fZ') >= (datetime.now() - timedelta(days=2)) } # Deixo apenas as partidas mais recentes na lista
+                        print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
                #else: print("Nada para apostar por enquanto...")
                #print( dc["nomeBF"], dc["nomeJ"], dc["Json"]["daH"] )
                #self.salvaDadosBD(dc) #Ver se reativa 
