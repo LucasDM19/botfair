@@ -323,7 +323,7 @@ class BotFair():
       if( len(dic_filtro) == 0 ):
          #print("Sem nada para apostar", dc["nomeBF"], len(dic_op_aposta) )
          return False, "nada", -1, 0 # Sem nada para fazer
-      if( max(dic_filtro, key=dic_filtro.get) > 0.10 ): breakpoint()
+      #if( max(dic_filtro, key=dic_filtro.get) > 0.10 ): breakpoint()
       return True, dic_tipo_aposta[max(dic_filtro, key=dic_filtro.get)], max(dic_filtro, key=dic_filtro.get), dic_filtro[max(dic_filtro, key=dic_filtro.get)] # Retorna a melhor seleção de odd + o valor a ser apostado
    
    #Consulta a lista de apostas em andamento
@@ -378,6 +378,7 @@ class BotFair():
                nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
                retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
                saldo = int(retorno_saldo['availableToBetBalance'])
+               if( percent_da_banca > 0.05 ): percent_da_banca = 0.05
                stack_aposta = round(percent_da_banca*saldo,2) # Olha o 0.5 de precaução aí
                #if(stack_aposta > 5): stack_aposta = 5.0 # Teste
                valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
