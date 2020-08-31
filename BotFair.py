@@ -302,7 +302,7 @@ class BotFair():
          OM1=math.log(1+oddsO)
          d_hand_tc=abs(handicap)
          #breakpoint()
-         if( (goal_diff < 1.00 or goal_diff > 4.25) or (oddsO <= 1.1 or oddsO > 2.1 ) ): kelly_OVER = -1 
+         if( (goal_diff < 0.00 or goal_diff > 4.25) or (oddsO <= 1.1 or oddsO > 2.1 ) ): kelly_OVER = -1 
          else: kelly_OVER=0.0196131*s_c+0.0098857*s_s+-0.0247524*s_r+-0.016744*d_c+0.1128363*d_hand_tc+-0.251764*d_goal_bf+-2.3750849*oddsU+-0.5023665*L1+7.1751788*OM1+-2.6701679
          if( (goal_diff < 1.00 or goal_diff > 4.25) or (oddsU <= 1.1 or oddsU > 2.1 ) ): kelly_UNDER = -1 
          else: kelly_UNDER=-0.004704*s_s+0.0105575*s_r+-0.0289218*d_g+-0.0007306*d_da+0.0017628*d_s+-0.1907982*d_goal_bf+-2.0169732*oddsO+0.0169774*W+1.2183641*L1+5.8118938*UM1+-3.1709947
