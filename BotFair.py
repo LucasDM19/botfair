@@ -60,9 +60,10 @@ class BotFair():
       import datetime
       #now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
       now_fuso = datetime.datetime.now() + datetime.timedelta(hours=3, minutes=0) # Horário de Londres
-      faz_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-1*minutos-15)).strftime('%Y-%m-%dT%H:%M:%SZ')
-      daqui_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-1*minutos+15)).strftime('%Y-%m-%dT%H:%M:%SZ')
+      faz_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-60)).strftime('%Y-%m-%dT%H:%M:%SZ') # 60 minutos
+      daqui_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-45)).strftime('%Y-%m-%dT%H:%M:%SZ') # 45 minutos
       #print("Inicio e fim:", faz_45_minutos, daqui_45_minutos)
+      #breakpoint()
       filtro=('{"filter":{"eventTypeIds":["1"],  '
          ' "turnsInPlay" : true, "inPlayOnly" : true, '
          ' "marketStartTime":{"from":"' + faz_45_minutos + '", "to":"' + daqui_45_minutos + '"}},'
@@ -221,7 +222,7 @@ class BotFair():
       odds = api.obtemOddsDosMercados(json_req=filtro)
       
       melhoresOdds = { mercados[odds[idxRun]["runners"][idxSel]["selectionId"]]  :  odds[idxRun]["runners"][idxSel]["ex"]["availableToBack"][0]["price"]  for idxRun in range(len(odds))  for idxSel in range(len(odds[idxRun]["runners"])) if len(odds[idxRun]["runners"][idxSel]["ex"]["availableToBack"]) >= 1 }
-      
+      breakpoint()
       return melhoresOdds, selectionsM, mercadosM
    
    #Avalia os dados, e define se faz aposta ou nao
