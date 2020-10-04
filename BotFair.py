@@ -222,7 +222,7 @@ class BotFair():
       odds = api.obtemOddsDosMercados(json_req=filtro)
       
       melhoresOdds = { mercados[odds[idxRun]["runners"][idxSel]["selectionId"]]  :  odds[idxRun]["runners"][idxSel]["ex"]["availableToBack"][0]["price"]  for idxRun in range(len(odds))  for idxSel in range(len(odds[idxRun]["runners"])) if len(odds[idxRun]["runners"][idxSel]["ex"]["availableToBack"]) >= 1 }
-      breakpoint()
+      #breakpoint()
       return melhoresOdds, selectionsM, mercadosM
    
    #Avalia os dados, e define se faz aposta ou nao
