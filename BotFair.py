@@ -60,8 +60,8 @@ class BotFair():
       import datetime
       #now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
       now_fuso = datetime.datetime.now() + datetime.timedelta(hours=3, minutes=0) # Horário de Londres
-      faz_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-60)).strftime('%Y-%m-%dT%H:%M:%SZ') # 60 minutos
-      daqui_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-45)).strftime('%Y-%m-%dT%H:%M:%SZ') # 45 minutos
+      faz_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-90)).strftime('%Y-%m-%dT%H:%M:%SZ') # 75 minutos + 15 minutos intervalo
+      daqui_45_minutos = (now_fuso + datetime.timedelta(hours=horas, minutes=-80)).strftime('%Y-%m-%dT%H:%M:%SZ') # 65 minutos + 15 minutos intervalo
       #print("Inicio e fim:", faz_45_minutos, daqui_45_minutos)
       #breakpoint()
       filtro=('{"filter":{"eventTypeIds":["1"],  '
