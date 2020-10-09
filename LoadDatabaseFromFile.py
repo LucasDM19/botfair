@@ -195,8 +195,8 @@ if __name__ == '__main__':
    #caminho_mes_ano.append( caminho_inicial[0] + str(ano) + '\\' + str(nome_mes) + '\\' )
    #print( ano, mes, nome_mes, caminho_mes_ano )
   
-   nome_arqs_pickle = 'load_arqs.pkl'
-   nome_base_dados = 'bf_under_over_full.db'
+   #nome_arqs_pickle = 'load_arqs.pkl'
+   #nome_base_dados = 'bf_under_over_full.db'
    #c, conn = iniciaBanco('bf_under_over_'+str(ano)+str(mes)+'.db')
    #c, conn = iniciaBanco(':memory:')
    c, conn = iniciaBanco('C:\\Users\\Lucas\\Desktop\\bf_under_over_full.db')
@@ -212,7 +212,7 @@ if __name__ == '__main__':
    #   dados_proc['ids'] = lista_ids
    #   verificaDiretorios()
    #removeDuplicatas()
-   #consolidaOdds()
-   recriaIndices()
-   fazLimpeza()
+   consolidaOdds()
+   #recriaIndices()
+   #fazLimpeza()
    #descarregaDaMemoria(conn, nome_base_dados)

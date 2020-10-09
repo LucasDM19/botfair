@@ -32,7 +32,7 @@ class BaseDeDados:
       while True: 
          row = c_sumario.fetchone()
          if row == None: break  # Acabou o sqlite
-         #event_id, market_time, inplay_timestamp, market_name, country = row
+         #print(row) #event_id, market_time, inplay_timestamp, market_name, country = row
          lista_odds.append(row)
       return lista_odds
          
