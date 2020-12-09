@@ -12,8 +12,8 @@ import json
 import requests
 
 def iniciaBanco(nome_banco):
-   conn = sqlite3.connect(nome_banco)
-   c = conn.cursor()
+   #conn = sqlite3.connect(nome_banco)
+   #c = conn.cursor()
 
    c.execute('create table if not exists odds (RunnerId, RaceId, LastTradedPrice, PublishedTime)')
    #c.execute('create table if not exists odds_position (RunnerId, RaceId, CurrentPrice , MinutesUntillRace INTEGER)') # Odds por minuto
@@ -21,10 +21,11 @@ def iniciaBanco(nome_banco):
    c.execute('create table if not exists afs (RunnerId, RaceId, AdjustmentFactor, PublishedTime)')
    #c.execute('create table if not exists afs_position (RunnerId, RaceId, CurrentAF, MinutesUntillRace INTEGER)') # AFs por minuto
    c.execute('create table if not exists runners (RunnerId, RaceId, EventId, RunnerName, WinLose INTEGER, BSP INTEGER)')
-   return c, conn
+   #return c, conn
 
 def insere_bz2_sqlite(arquivo_bz2, arquivo):
-   global c, conn, lista_ids, nome_arqs_pickle, dados_proc
+   #global c, conn, lista_ids, nome_arqs_pickle, dados_proc
+   global lista_ids, nome_arqs_pickle, dados_proc
    url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
    with bz2.open(arquivo_bz2, "rt") as bz_file:
       md=json.loads( next(bz_file)  )['mc'][0]['marketDefinition']
@@ -53,7 +54,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              #if inplay_timestamp==0 and md['inPlay']==True and 'OVER_UNDER_' in md['marketType'] :
              if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType']  and [md['eventId'], md['eventName']] not in lista_ids ) : 
                #print("Tem races", md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] )
-               inplay_timestamp=time        
+               inplay_timestamp=datetime.datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')         
                #c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], int(md['eventId']), md['countryCode'] ])
                myobj_r = {'t' : 'r', 
                            'market_time' : md['marketTime'],
@@ -82,7 +83,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
                   x = requests.post(url, data = myobj_u)
                   #print(x.text)
 
-      conn.commit()
+      #conn.commit()
       dados_proc['ids'] = lista_ids
       #salvaProgresso(dados_proc, nome_arqs_pickle)
 
@@ -235,7 +236,7 @@ else: # Crio uma lista nova
       lista_datas.append( [dt_tmp.day, dt_tmp.month, dt_tmp.year] )
       dt_tmp += datetime.timedelta(days=1)
 
-c, conn = iniciaBanco('C:\\Users\\Lucas\\Desktop\\bf_under_over_full.db')
+#c, conn = iniciaBanco('C:\\Users\\Lucas\\Desktop\\bf_under_over_full.db')
 dados_proc = {}
 lista_ids = [] # Para evitar duplicados no races
 dados_proc['ids'] = lista_ids
