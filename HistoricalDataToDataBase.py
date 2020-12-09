@@ -9,6 +9,7 @@ import calendar
 import sqlite3
 import bz2
 import json
+import requests
 
 def iniciaBanco(nome_banco):
    conn = sqlite3.connect(nome_banco)
@@ -24,6 +25,7 @@ def iniciaBanco(nome_banco):
 
 def insere_bz2_sqlite(arquivo_bz2, arquivo):
    global c, conn, lista_ids, nome_arqs_pickle, dados_proc
+   url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
    with bz2.open(arquivo_bz2, "rt") as bz_file:
       md=json.loads( next(bz_file)  )['mc'][0]['marketDefinition']
       race_id=arquivo.replace('.bz2','')
@@ -36,7 +38,14 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
          if 'rc' in obj['mc'][0]  :
             for odd in obj['mc'][0]['rc']:
                 #print("Tem odds", odd['id'], race_id, odd['ltp'], time )
-                c.execute("insert or replace into  odds values (?,?,?,datetime(?,'unixepoch'))", [odd['id'], race_id, odd['ltp'], time ])
+                #c.execute("insert or replace into  odds values (?,?,?,datetime(?,'unixepoch'))", [odd['id'], race_id, odd['ltp'], time ])
+                myobj_o = {'t' : 'o', 
+                           'id' : odd['id'],
+                           'race_id' : race_id,
+                           'ltp' : odd['ltp'],
+                           'time' : time, }
+                x = requests.post(url, data = myobj_o)
+                #print(x.text)
          
          if 'marketDefinition' in obj['mc'][0]:
              md=obj['mc'][0]['marketDefinition']                
@@ -45,7 +54,15 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              if ( md['status']=='SUSPENDED' and 'OVER_UNDER_' in md['marketType']  and [md['eventId'], md['eventName']] not in lista_ids ) : 
                #print("Tem races", md['marketTime'], inplay_timestamp, md['eventName'], md['eventId'], md['countryCode'] )
                inplay_timestamp=time        
-               c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], int(md['eventId']), md['countryCode'] ])
+               #c.execute("insert or replace into races values (?,datetime(?,'unixepoch'),?,?,?)", [md['marketTime'], inplay_timestamp, md['eventName'], int(md['eventId']), md['countryCode'] ])
+               myobj_r = {'t' : 'r', 
+                           'market_time' : md['marketTime'],
+                           'inplay_timestamp' : inplay_timestamp,
+                           'market_name' : md['eventName'],
+                           'event_id' : md['eventId'],
+                           'country' :  md['countryCode'], }
+               x = requests.post(url, data = myobj_r)
+               #print(x.text)
                lista_ids.append( [md['eventId'], md['eventName']] )
 
              #if( md['eventName'] == 'FC Bastia-Borgo v Concarneau' ):
@@ -54,7 +71,16 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
              if (md['status']=='CLOSED' and 'OVER_UNDER_' in md['marketType'] ) : 
                for runner in md['runners']:
                   #print("Tem Runners", runner['id'], race_id, md['eventId'], runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 )
-                  c.execute("insert or replace into runners values (?,?,?,?,?,?)", [runner['id'], race_id, int(md['eventId']), runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
+                  #c.execute("insert or replace into runners values (?,?,?,?,?,?)", [runner['id'], race_id, int(md['eventId']), runner['name'],1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1), runner['bsp'] if 'bsp' in runner else -1 ])
+                  myobj_u = {'t' : 'u', 
+                              'runner_id' : runner['id'],
+                              'race_id' : race_id,
+                              'event_id' : md['eventId'],
+                              'runner_name' : runner['name'],
+                              'win_lose' : str(1 if runner['status']=='WINNER' else (0 if runner['status']=='LOSER' else -1)), 
+                              'bsp' : runner['bsp'] if 'bsp' in runner else '-1' , }
+                  x = requests.post(url, data = myobj_u)
+                  #print(x.text)
 
       conn.commit()
       dados_proc['ids'] = lista_ids
