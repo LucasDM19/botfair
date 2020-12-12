@@ -19,7 +19,7 @@ class BaseDeDados:
       lista_odds = []
       conn = sqlite3.connect(self.nomeBD)
       c_sumario = conn.cursor()
-      c_sumario.execute("""SELECT races.MarketTime, races.MarketName, runners.RunnerName, o.CurrentPrice, min(o.MinutesUntillRace) as mini_min, runners.WinLose
+      c_sumario.execute("""SELECT races.MarketTime, races.MarketName, runners.RunnerName, o.CurrentPrice, min(o.MinutesUntillRace) as mini_min, runners.WinLose, runners.EventId
                            FROM odds_position as o, runners, races
                            WHERE runners.RunnerId = o.RunnerId
                              AND runners.RaceId = o.RaceId

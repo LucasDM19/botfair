@@ -44,7 +44,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
                            'id' : odd['id'],
                            'race_id' : race_id,
                            'ltp' : odd['ltp'],
-                           'time' : time, }
+                           'time' : datetime.datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')   , }
                 x = requests.post(url, data = myobj_o)
                 #print(x.text)
          
