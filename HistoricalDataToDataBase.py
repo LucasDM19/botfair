@@ -88,7 +88,7 @@ def insere_bz2_sqlite(arquivo_bz2, arquivo):
       dados_proc['ids'] = lista_ids
       #salvaProgresso(dados_proc, nome_arqs_pickle)
 
-def processa_bz2(arquivo_bz2, arquivo):
+def processa_bz2(arquivo_bz2, arquivo, cam_arq=''):
    with bz2.open(arquivo_bz2, "rt") as bz_file:
       try:
          obj=json.loads( next(bz_file)  )
@@ -105,6 +105,11 @@ def processa_bz2(arquivo_bz2, arquivo):
          pass
       except OSError:
          print("Arquivo", arquivo, " com erro ***")
+         url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
+         myobj_e = {'t' : 'a', 
+                     'arquivo' : arquivo,
+                     'diretorio' : cam_arq, }
+         x = requests.post(url, data = myobj_e)
       except EOFError:
          print("Erro de EOF !!!", arquivo)
 
@@ -204,7 +209,7 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
             #download = trading.historic.download_file(file_path=file, store_directory=caminho)
             download = trading.historic.download_file(file_path=file)
             print(download)
-            processa_bz2(download, download)
+            processa_bz2(download, download, file)
             os.remove(download)
             lista_pendentes.remove(file) # Foi processado
             salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
