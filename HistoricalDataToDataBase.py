@@ -220,7 +220,7 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
             lista_pendentes.remove(file) # Foi processado
             salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
             download_ok = ret_arq
-          except ValueError:
+          except ValueError as e:
             print("Lista inexistente: %s" % e)
             pass
           except Exception as e:
