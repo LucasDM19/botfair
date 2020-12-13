@@ -222,6 +222,7 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
             download_ok = ret_arq
           except ValueError as e:
             print("Lista inexistente: %s" % e)
+            download_ok = True
             pass
           except Exception as e:
             print ("Teve Timeout: %s" % e)
