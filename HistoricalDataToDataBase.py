@@ -97,14 +97,18 @@ def processa_bz2(arquivo_bz2, arquivo, cam_arq=''):
          if('OVER_UNDER_' in marketType ):
             #print("Tipo Mercado=", marketType)
             insere_bz2_sqlite(arquivo_bz2, arquivo)
+         return True
       except KeyError:
         #print("CountryCode?", obj['mc'][0]['marketDefinition'] )
         #x = 1/0
+        return False
         pass
       except json.decoder.JSONDecodeError:
+         return False
          pass
       except OSError:
          print("Arquivo", arquivo, " com erro ***")
+         return False
          url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
          myobj_e = {'t' : 'a', 
                      'arquivo' : arquivo,
@@ -112,6 +116,7 @@ def processa_bz2(arquivo_bz2, arquivo, cam_arq=''):
          x = requests.post(url, data = myobj_e)
       except EOFError:
          print("Erro de EOF !!!", arquivo)
+         return False
 
 """
 Historic is the API endpoint that can be used to
@@ -210,11 +215,11 @@ def baixaArquivosDoMes(trading, dia, mes, ano):
             #download = trading.historic.download_file(file_path=file, store_directory=caminho)
             download = trading.historic.download_file(file_path=file)
             print(download)
-            processa_bz2(download, download, file)
+            ret_arq = processa_bz2(download, download, file)
             os.remove(download)
             lista_pendentes.remove(file) # Foi processado
             salvaProgresso(lista_pendentes, nome_arq_pickle) # Armazena a lista do que falta
-            download_ok = True
+            download_ok = ret_arq
           except Exception as e:
             print ("Teve Timeout: %s" % e)
             import time
