@@ -139,7 +139,8 @@ def arrumaDiretorio(caminho=None, lista_pastas=None):
 
 def conectaNaBetFair():
    # create trading instance
-   trading = betfairlightweight.APIClient(usuarioAPI,senhaAPI, app_key=APIKey, certs='d:/python/codes/botfair/')
+   import pathlib
+   trading = betfairlightweight.APIClient(usuarioAPI,senhaAPI, app_key=APIKey, certs=str(pathlib.Path().absolute()))
 
    # login
    trading.login()
