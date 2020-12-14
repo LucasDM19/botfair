@@ -269,63 +269,66 @@ class BotFair():
          id_ic = partidaBF['id_tc'] # Id do TotalCorner
          nomeBF = partidaBF['home_bf'] + " v " + partidaBF['away_bf'] # Nome BetFair
          nomeJ = partidaBF['home_tc'] + " v " + partidaBF['away_tc'] # Nome Total Corner
-         print( [j for j in jstat if j['jogo_id'] == id_ic] )
-         jstat_x = [j for j in jstat if j['jogo_id'] == id_ic][0] # Apenas as stats especificas
-         #partidaBF_x = self.obtemOddsDaPartida(event_id = id_bf)
-         dc_odds, dc_selecoes, dc_mercados = self.getOddsFromPartida(idBF = id_bf ) # Falta essa informação
-         dc = {"nomeBF" : nomeBF, "nomeJ" : nomeJ, "BetFair" : partidaBF, "Json" : jstat_x, "odds": dc_odds, "selecoes": dc_selecoes, "mercados": dc_mercados, }
-         #breakpoint()
-         devo_apostar, tipo_aposta, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
-         nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
-         retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
-         saldo = int(retorno_saldo['availableToBetBalance'])
-         if( percent_da_banca > 0.05 ): percent_da_banca = 0.05
-         stack_aposta = round(percent_da_banca*saldo,2) # Olha o 0.5 de precaução aí
-         valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
-         
-         if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
+         if( len([j for j in jstat if j['jogo_id'] == id_ic]) != 0 ): # Vez ou outra tem dados vazios no Json
+            jstat_x = [j for j in jstat if j['jogo_id'] == id_ic][0] # Apenas as stats especificas
+            #partidaBF_x = self.obtemOddsDaPartida(event_id = id_bf)
+            dc_odds, dc_selecoes, dc_mercados = self.getOddsFromPartida(idBF = id_bf ) # Falta essa informação
+            dc = {"nomeBF" : nomeBF, "nomeJ" : nomeJ, "BetFair" : partidaBF, "Json" : jstat_x, "odds": dc_odds, "selecoes": dc_selecoes, "mercados": dc_mercados, }
             #breakpoint()
-            odd_selecionada = dc["odds"][tipo_aposta+" "+str(uo)+".5 Goals"] #Under ou Over
-            #if len([self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ]) > 0 :
-            if( 'Over/Under '+str(uo) in dc_odds.keys() ): # Odd valida
-               #marketId = [self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ][0]
-               marketId = dc_mercados[id_bf] # Com base no EventId, obtenho MarketId
-               #print("Apostarei", percent_da_banca, ",stack=", stack_aposta, str(round(percent_da_banca*saldo,2)), ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
-               
-               selectionId = str(dc["selecoes"][tipo_aposta+" "+str(uo)+".5 Goals"] )
-               filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + selectionId + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
+            devo_apostar, tipo_aposta, uo, percent_da_banca = self.avaliaSeApostaOuNao(dc)
+            nao_apostei_ainda = self.verificaSeJaApostouOuNao(nome_jogo_BF=dc["nomeBF"] )
+            retorno_saldo = self.api.obtemSaldoDaConta() #{'availableToBetBalance': 177.94, 'exposure': 0.0, 'retainedCommission': 0.0, 'exposureLimit': -10000.0, 'discountRate': 0.0, 'pointsBalance': 20, 'wallet': 'UK'}
+            saldo = int(retorno_saldo['availableToBetBalance'])
+            #if( percent_da_banca > 0.05 ): percent_da_banca = 0.05
+            stack_aposta = round(percent_da_banca*saldo,2) 
+            #valor_minimo_aposta = 3 # Equivalente a 2 GBP (2.62) - na verdade 3 EUR
+            valor_minimo_aposta = 0 # Teste
+            
+            if( devo_apostar and nao_apostei_ainda and stack_aposta >= valor_minimo_aposta ):
                #breakpoint()
-               
-               from datetime import datetime
-               url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
-               myobj_e = {'t' : 'a', 
-                           'percent_banca' : str(percent_da_banca),
-                           'stack_aposta' : str(stack_aposta), 
-                           'selecao' : str(tipo_aposta)+str(uo)+".5 Goals",
-                           'odds' : str(odd_selecionada),
-                           'jogo' : dc["nomeBF"],
-                           'mercado' : marketId,
-                           'hora' : datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                           'bet_id' : '-1',}
-               x = requests.post(url, data = myobj_e)
-               print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
-               
-               # retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
-               # if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
-                  # print("Erro:", retorno_aposta)
-               # elif( retorno_aposta['instructionReports'][0]['sizeMatched'] == 0.0 ) :
-                  # #print("Aposta não correspondida") #Exemplo: {'status': 'SUCCESS', 'marketId': '1.172153457', 'instructionReports': [{'status': 'SUCCESS', 'instruction': {'selectionId': 47972, 'handicap': 0.0, 'limitOrder': {'size': 5.0, 'price': 4.3, 'persistenceType': 'LAPSE'}, 'orderType': 'LIMIT', 'side': 'BACK'}, 'betId': '208573543824', 'placedDate': '2020-08-16T17:19:13.000Z', 'averagePriceMatched': 0.0, 'sizeMatched': 0.0, 'orderStatus': 'EXECUTABLE'}]}
-                  # bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
-                  # filtro='{"betId" : '+str(bet_id)+' }'
-                  # retorno_cancelamento = self.api.cancelaAposta(json_req=filtro) # Exempo: {'status': 'SUCCESS', 'instructionReports': []}
-               # else:
-                  # bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
-                  # data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
-                  # self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
-                  # salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
-                  # self.dic_apostas = {j:i for j,i in self.dic_apostas.items() if datetime.strptime(self.dic_apostas[j]['data'], '%Y-%m-%dT%H:%M:%S.%fZ') >= (datetime.now() - timedelta(days=2)) } # Deixo apenas as partidas mais recentes na lista
-                  # print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
-         #else: print("Nada para apostar por enquanto...")
+               odd_selecionada = dc["odds"][tipo_aposta+" "+str(uo)+".5 Goals"] #Under ou Over
+               #if len([self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ]) > 0 :
+               if( 'Over/Under '+str(uo) in dc_odds.keys() ): # Odd valida
+                  #marketId = [self.jPartidas[idx]['marketId'] for idx in range(len(self.jPartidas)) if ('Over/Under '+str(uo) in self.jPartidas[idx]['marketName']) and ( self.jPartidas[idx]["event"]["name"] == dc["nomeBF"] ) ][0]
+                  marketId = dc_mercados[id_bf] # Com base no EventId, obtenho MarketId
+                  #print("Apostarei", percent_da_banca, ",stack=", stack_aposta, str(round(percent_da_banca*saldo,2)), ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
+                  
+                  selectionId = str(dc["selecoes"][tipo_aposta+" "+str(uo)+".5 Goals"] )
+                  filtro='{ "marketId": "'+ marketId +'", "instructions": [ { "selectionId": "' + selectionId + '", "handicap": "0", "side": "BACK", "orderType": "LIMIT", "limitOrder": { "size": "'+str(stack_aposta)+'", "price": "'+ str(odd_selecionada) +'", "persistenceType": "LAPSE" } } ] }'
+                  #breakpoint()
+                  
+                  from datetime import datetime
+                  url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
+                  myobj_e = {'t' : 'a', 
+                              'percent_banca' : str(percent_da_banca),
+                              'stack_aposta' : str(stack_aposta), 
+                              'selecao' : str(tipo_aposta)+str(uo)+".5 Goals",
+                              'odds' : str(odd_selecionada),
+                              'jogo' : dc["nomeBF"],
+                              'mercado' : marketId,
+                              'hora' : datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                              'bet_id' : '-1',}
+                  x = requests.post(url, data = myobj_e)
+                  print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
+                  self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : datetime.now().strftime('%Y-%m-%d %H:%M:%S') } # Código da aposta e data da aposta
+                  salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
+                  
+                  # retorno_aposta = self.api.aposta(json_req=filtro) #Cuidado
+                  # if( retorno_aposta["status"] != "SUCCESS" ): #'result' not in retorno_aposta or 
+                     # print("Erro:", retorno_aposta)
+                  # elif( retorno_aposta['instructionReports'][0]['sizeMatched'] == 0.0 ) :
+                     # #print("Aposta não correspondida") #Exemplo: {'status': 'SUCCESS', 'marketId': '1.172153457', 'instructionReports': [{'status': 'SUCCESS', 'instruction': {'selectionId': 47972, 'handicap': 0.0, 'limitOrder': {'size': 5.0, 'price': 4.3, 'persistenceType': 'LAPSE'}, 'orderType': 'LIMIT', 'side': 'BACK'}, 'betId': '208573543824', 'placedDate': '2020-08-16T17:19:13.000Z', 'averagePriceMatched': 0.0, 'sizeMatched': 0.0, 'orderStatus': 'EXECUTABLE'}]}
+                     # bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+                     # filtro='{"betId" : '+str(bet_id)+' }'
+                     # retorno_cancelamento = self.api.cancelaAposta(json_req=filtro) # Exempo: {'status': 'SUCCESS', 'instructionReports': []}
+                  # else:
+                     # bet_id = retorno_aposta['instructionReports'][0]['betId'] # Salva o Id da aposta
+                     # data_aposta = retorno_aposta['instructionReports'][0]['placedDate']
+                     # self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : data_aposta} # Código da aposta e data da aposta
+                     # salvaProgresso(self.dic_apostas, nome_aposta_pickle) # Armazena a lista de partidas apostadas
+                     # self.dic_apostas = {j:i for j,i in self.dic_apostas.items() if datetime.strptime(self.dic_apostas[j]['data'], '%Y-%m-%dT%H:%M:%S.%fZ') >= (datetime.now() - timedelta(days=2)) } # Deixo apenas as partidas mais recentes na lista
+                     # print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
+            #else: print("Nada para apostar por enquanto...")
        
 if __name__ == "__main__":
    u, s, a = usuarioAPI, senhaAPI, APIKey
