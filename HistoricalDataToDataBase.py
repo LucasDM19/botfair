@@ -109,11 +109,11 @@ def processa_bz2(arquivo_bz2, arquivo, cam_arq=''):
       except OSError:
          print("Arquivo", arquivo, " com erro ***")
          return False
-         url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
-         myobj_e = {'t' : 'a', 
-                     'arquivo' : arquivo,
-                     'diretorio' : cam_arq, }
-         x = requests.post(url, data = myobj_e)
+         #url = 'http://19k.me/bf_db/CRUJ.php' # Para a parte do BD
+         #myobj_e = {'t' : 'a', 
+         #            'arquivo' : arquivo,
+         #            'diretorio' : cam_arq, }
+         #x = requests.post(url, data = myobj_e)
       except EOFError:
          print("Erro de EOF !!!", arquivo)
          return False
