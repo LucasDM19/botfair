@@ -196,6 +196,8 @@ class BotFair():
          #oddsL2 = math.log(1+oddsL1)
          #oddsL3 = math.log(1+oddsL2)
          goal_diff = b365_goal - s_g
+         if(goal_diff == 0 or goalline == 0):
+            return False, "nada", -1, 0 # Sem nada para fazer, pois da 1/0
          Z = (goalline - s_g)/goal_diff
          gg = s_g/goalline
          s_gL1=math.log(1+s_g)
@@ -307,7 +309,8 @@ class BotFair():
                               'jogo' : dc["nomeBF"],
                               'mercado' : marketId,
                               'hora' : datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                              'bet_id' : '-1',}
+                              'bet_id' : '-1',
+                              'user' : 'lucasmuzel@gmail.com',}
                   x = requests.post(url, data = myobj_e)
                   print("Aposta", percent_da_banca, ",stack=", stack_aposta, ", na selecao ", tipo_aposta, str(uo)+".5 Goals", ", odds=", odd_selecionada, ", jogo=", dc["nomeBF"], "(", dc["nomeJ"], ")", "mercado=", marketId, " .")
                   self.dic_apostas[ dc["nomeBF"] ] = {'id': bet_id, 'data' : datetime.now().strftime('%Y-%m-%d %H:%M:%S') } # Código da aposta e data da aposta

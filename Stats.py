@@ -22,6 +22,9 @@ class SoccerStats():
       except json.decoder.JSONDecodeError:
          #print("json provavelmente vazio!")
          return {}
+      except http.client.RemoteDisconnected:
+         print("Tem ninguem do outro lado da linha")
+         return {}
          
    #Levenshtein distance in a recursive way (https://www.python-course.eu/levenshtein_distance.php)
    def LD(self, s, t):
